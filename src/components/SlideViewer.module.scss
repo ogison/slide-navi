@@ -46,9 +46,36 @@
   color: #94a3b8;
 }
 
+.slideTitle {
+  margin: 0.25rem 0 0;
+  font-size: 1rem;
+  color: #f1f5f9;
+  font-weight: 600;
+}
+
+.clickWaitIndicator {
+  padding: 0.25rem 0.75rem;
+  background-color: #fbbf24;
+  color: #92400e;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
 .actions {
   display: flex;
   gap: 0.75rem;
+  align-items: center;
 }
 
 .navButton {
@@ -87,12 +114,27 @@
   background: rgba(99, 102, 241, 0.3);
 }
 
+.nextButton.blinking {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    background-color: rgba(99, 102, 241, 0.3);
+    border-color: rgba(99, 102, 241, 0.6);
+  }
+  50% {
+    background-color: rgba(99, 102, 241, 0.5);
+    border-color: rgba(99, 102, 241, 0.8);
+  }
+}
+
 .stage {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  padding: 0.5rem;
   min-height: 26.25rem;
   background-color: #0f172a;
 }
