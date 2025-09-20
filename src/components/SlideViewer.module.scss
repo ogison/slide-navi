@@ -60,7 +60,10 @@
   color: #e2e8f0;
   font-size: 0.875rem;
   font-weight: 500;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
   cursor: pointer;
 }
 
@@ -85,11 +88,11 @@
 }
 
 .stage {
-  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 1.5rem;
   min-height: 26.25rem;
   background-color: #0f172a;
 }
@@ -130,18 +133,18 @@
   color: #94a3b8;
 }
 
-.overlay {
-  position: absolute;
-  left: 50%;
-  bottom: 2rem;
-  transform: translateX(-50%);
-  width: min(90%, 48rem);
-  pointer-events: none;
+.messagePanel {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+  background-color: rgba(15, 23, 42, 0.7);
+  border-top: 1px solid rgba(30, 41, 59, 0.7);
 }
 
-.overlayCard {
+.messageCard {
   display: flex;
   gap: 1rem;
+  width: min(99%, 48rem);
   padding: 1rem;
   background: rgba(248, 250, 252, 0.95);
   border-radius: 1.25rem;
@@ -193,7 +196,7 @@
 }
 
 @media (max-width: 640px) {
-  .overlayCard {
+  .messageCard {
     flex-direction: column;
     align-items: center;
     text-align: center;
