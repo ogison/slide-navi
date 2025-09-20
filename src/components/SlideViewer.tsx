@@ -83,20 +83,20 @@ export default function SlideViewer({
             </p>
           </div>
         )}
+      </div>
 
-        <div className={styles.overlay}>
-          <div className={styles.overlayCard}>
-            <div className={styles.speaker}>
-              <img src={iconSrc} alt="話者アイコン" className={styles.icon} />
-              <span className={styles.speakerName}>{speakerName}</span>
-            </div>
-            <div className={styles.message}>
-              {messageLines.map((line, index) => (
-                <p key={index} className={styles.messageLine}>
-                  {line}
-                </p>
-              ))}
-            </div>
+      <div className={styles.messagePanel}>
+        <div className={styles.messageCard}>
+          <div className={styles.speaker}>
+            <img src={iconSrc} alt="話者アイコン" className={styles.icon} />
+            <span className={styles.speakerName}>{speakerName}</span>
+          </div>
+          <div className={styles.message}>
+            {messageLines.map((line, index) => (
+              <p key={index} className={styles.messageLine}>
+                {line}
+              </p>
+            ))}
           </div>
         </div>
       </div>
