@@ -1,4 +1,4 @@
-﻿.container {
+.container {
   flex: 1 1 40%;
   max-width: 24rem;
   display: flex;
@@ -45,7 +45,9 @@
   text-align: center;
   gap: 0.5rem;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
 
 .fileDrop {
@@ -87,7 +89,8 @@
 }
 
 .textInput,
-.textArea {
+.textArea,
+.numberInput {
   width: 100%;
   border-radius: 0.9rem;
   border: 1px solid rgba(71, 85, 105, 0.7);
@@ -95,11 +98,14 @@
   color: #f8fafc;
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .textInput:focus,
-.textArea:focus {
+.textArea:focus,
+.numberInput:focus {
   outline: none;
   border-color: rgba(99, 102, 241, 0.6);
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
@@ -110,7 +116,65 @@
   min-height: 8rem;
   line-height: 1.6;
 }
+.autoPlayControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
+.autoPlayButton {
+  align-self: flex-start;
+  min-width: 10rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(99, 102, 241, 0.45);
+  background: rgba(99, 102, 241, 0.2);
+  color: #e0e7ff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.autoPlayButton:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.autoPlayButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.autoPlayButtonActive {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.45);
+  color: #bbf7d0;
+}
+
+.autoPlayButtonActive:hover:not(:disabled) {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.autoPlayInputGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+.numberInput::-webkit-outer-spin-button,
+.numberInput::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.numberInput {
+  -moz-appearance: textfield;
+}
 .pageButtons {
   display: flex;
   flex-wrap: wrap;
@@ -127,7 +191,10 @@
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .pageButton:hover {

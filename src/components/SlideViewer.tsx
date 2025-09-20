@@ -1,7 +1,11 @@
 ﻿/* eslint-disable @next/next/no-img-element */
 
-import type { SlideImage } from "../types/slides";
+import { useEffect, useMemo, useRef, useState } from "react";
+
+import type { SlideImage, MessageLine } from "../types/slides";
 import styles from "./SlideViewer.module.scss";
+
+const TYPEWRITER_DELAY_MS = 45;
 
 type SlideViewerProps = {
   currentSlide?: SlideImage;
@@ -11,7 +15,9 @@ type SlideViewerProps = {
   isLoading: boolean;
   speakerName: string;
   iconSrc: string;
-  messageLines: string[];
+  messages: MessageLine[];
+  slideTitle?: string;
+  waitingForClick?: boolean;
   onPrev: () => void;
   onNext: () => void;
 };
@@ -24,10 +30,87 @@ export default function SlideViewer({
   isLoading,
   speakerName,
   iconSrc,
-  messageLines,
+  messages,
+  slideTitle,
+  waitingForClick,
   onPrev,
   onNext,
 }: SlideViewerProps) {
+  const [visibleText, setVisibleText] = useState("");
+  const timeoutRef = useRef<number | null>(null);
+  const previousFullMessageRef = useRef<string>("");
+  const fullMessage = useMemo(() => messages.map(m => m.text).join("\n"), [messages]);
+
+  useEffect(() => {
+    if (timeoutRef.current) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    const previousFullMessage = previousFullMessageRef.current;
+
+    if (!fullMessage) {
+      setVisibleText("");
+      previousFullMessageRef.current = "";
+      return;
+    }
+
+    let startIndex = 0;
+
+    if (previousFullMessage && fullMessage.startsWith(previousFullMessage)) {
+      startIndex = previousFullMessage.length;
+      setVisibleText(previousFullMessage);
+    } else {
+      setVisibleText("");
+    }
+
+    previousFullMessageRef.current = fullMessage;
+
+    if (startIndex >= fullMessage.length) {
+      setVisibleText(fullMessage);
+      return;
+    }
+
+    let index = startIndex;
+
+    const tick = () => {
+      index += 1;
+      setVisibleText(fullMessage.slice(0, index));
+      if (index < fullMessage.length) {
+        timeoutRef.current = window.setTimeout(tick, TYPEWRITER_DELAY_MS);
+      } else {
+        timeoutRef.current = null;
+      }
+    };
+
+    if (startIndex === 0) {
+      tick();
+    } else {
+      timeoutRef.current = window.setTimeout(tick, TYPEWRITER_DELAY_MS);
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [fullMessage]);
+
+  const animatedLines = useMemo(() => {
+    if (!fullMessage) {
+      return [];
+    }
+
+    if (!visibleText) {
+      return [""];
+    }
+
+    return visibleText.split("\n");
+  }, [fullMessage, visibleText]);
+
+  const linesToRender = animatedLines.length ? animatedLines : messages.map(m => m.text);
+
   return (
     <section className={styles.container}>
       <div className={styles.topBar}>
@@ -35,12 +118,22 @@ export default function SlideViewer({
           <p className={styles.statusLabel}>現在のスライド</p>
           <p className={styles.fileName}>{documentName}</p>
           {totalPages > 0 && (
-            <p className={styles.pageCount}>
-              {currentIndex + 1} / {totalPages} ページ
-            </p>
+            <>
+              <p className={styles.pageCount}>
+                {currentIndex + 1} / {totalPages} ページ
+              </p>
+              {slideTitle && (
+                <p className={styles.slideTitle}>{slideTitle}</p>
+              )}
+            </>
           )}
         </div>
         <div className={styles.actions}>
+          {waitingForClick && (
+            <span className={styles.clickWaitIndicator}>
+              クリック待ち
+            </span>
+          )}
           <button
             type="button"
             className={styles.navButton}
@@ -51,7 +144,7 @@ export default function SlideViewer({
           </button>
           <button
             type="button"
-            className={`${styles.navButton} ${styles.nextButton}`}
+            className={`${styles.navButton} ${styles.nextButton} ${waitingForClick ? styles.blinking : ''}`}
             onClick={onNext}
             disabled={!totalPages || isLoading}
           >
@@ -92,7 +185,7 @@ export default function SlideViewer({
             <span className={styles.speakerName}>{speakerName}</span>
           </div>
           <div className={styles.message}>
-            {messageLines.map((line, index) => (
+            {linesToRender.map((line, index) => (
               <p key={index} className={styles.messageLine}>
                 {line}
               </p>
