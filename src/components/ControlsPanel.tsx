@@ -76,6 +76,16 @@ export default function ControlsPanel({
     onAutoPlayDelayChange(sanitizedValue);
   };
 
+  const handleDelayIncrease = () => {
+    const nextValue = Math.min(autoPlayDelaySeconds + 1, 60);
+    onAutoPlayDelayChange(nextValue);
+  };
+
+  const handleDelayDecrease = () => {
+    const nextValue = Math.max(autoPlayDelaySeconds - 1, 1);
+    onAutoPlayDelayChange(nextValue);
+  };
+
   const isAutoPlayDisabled = totalPages <= 1;
   const hasSlides = totalPages > 0;
   const isScriptInputDisabled = !hasSlides;
@@ -152,15 +162,38 @@ export default function ControlsPanel({
               メッセージ間隔（秒）
             </label>
 
-            <input
-              id="autoplay-interval"
-              type="number"
-              min={1}
-              value={autoPlayDelaySeconds}
-              onChange={handleDelayChange}
-              className={styles.numberInput}
-              disabled={totalPages === 0}
-            />
+            <div className={styles.numberInputWithArrows}>
+              <button
+                type="button"
+                className={styles.arrowButton}
+                onClick={handleDelayDecrease}
+                disabled={totalPages === 0 || autoPlayDelaySeconds <= 1}
+                aria-label="間隔を1秒減らす"
+              >
+                -
+              </button>
+
+              <input
+                id="autoplay-interval"
+                type="number"
+                min={1}
+                max={60}
+                value={autoPlayDelaySeconds}
+                onChange={handleDelayChange}
+                className={styles.numberInput}
+                disabled={totalPages === 0}
+              />
+
+              <button
+                type="button"
+                className={styles.arrowButton}
+                onClick={handleDelayIncrease}
+                disabled={totalPages === 0 || autoPlayDelaySeconds >= 60}
+                aria-label="間隔を1秒増やす"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       </div>
