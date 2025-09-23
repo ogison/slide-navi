@@ -13,6 +13,7 @@ import type {
 } from "../types/slides";
 import styles from "./Home.module.scss";
 import ControlsPanel from "@/components/ControlsPanel";
+import { SCRIPT_PLACEHOLDER } from "@/constants";
 
 type PdfJsModule = typeof import("pdfjs-dist");
 
@@ -40,19 +41,6 @@ const loadPdfjsModule = async (): Promise<PdfJsModule> => {
   return pdfjsModulePromise;
 };
 
-const SAMPLE_SCRIPT = `# タイトル
-@Dr. Hikari: こんにちは
-よろしくおねがいします >>2s
-
-# 目次
-今回紹介するのは
-・入門編
-・応用編
-・Q&A >>click
-
-# 入門編
-まずAのポイントは3つあります。
-1つめは…`;
 const parseScript = (script: string): SlideScript[] => {
   if (!script.trim()) {
     return [];
@@ -382,7 +370,7 @@ export default function Home() {
         setDocumentName(file.name);
         setIsAutoPlaying(false);
         setScriptInput((previous) =>
-          previous.trim() ? previous : SAMPLE_SCRIPT
+          previous.trim() ? previous : SCRIPT_PLACEHOLDER
         );
       } catch (pdfError) {
         console.error(pdfError);

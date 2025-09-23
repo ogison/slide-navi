@@ -37,7 +37,10 @@ export default function SlideViewer({
   onNext,
 }: SlideViewerProps) {
   const [visibleText, setVisibleText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const [currentIconIndex, setCurrentIconIndex] = useState(0);
   const timeoutRef = useRef<number | null>(null);
+  const iconIntervalRef = useRef<number | null>(null);
   const previousFullMessageRef = useRef<string>("");
   const fullMessage = useMemo(() => messages.map(m => m.text).join("\n"), [messages]);
 
@@ -52,6 +55,7 @@ export default function SlideViewer({
     if (!fullMessage) {
       setVisibleText("");
       previousFullMessageRef.current = "";
+      setIsTyping(false);
       return;
     }
 
@@ -68,10 +72,12 @@ export default function SlideViewer({
 
     if (startIndex >= fullMessage.length) {
       setVisibleText(fullMessage);
+      setIsTyping(false);
       return;
     }
 
     let index = startIndex;
+    setIsTyping(true);
 
     const tick = () => {
       index += 1;
@@ -80,6 +86,7 @@ export default function SlideViewer({
         timeoutRef.current = window.setTimeout(tick, TYPEWRITER_DELAY_MS);
       } else {
         timeoutRef.current = null;
+        setIsTyping(false);
       }
     };
 
@@ -94,8 +101,31 @@ export default function SlideViewer({
         window.clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
+      setIsTyping(false);
     };
   }, [fullMessage]);
+
+  useEffect(() => {
+    if (iconIntervalRef.current) {
+      window.clearInterval(iconIntervalRef.current);
+      iconIntervalRef.current = null;
+    }
+
+    if (isTyping) {
+      iconIntervalRef.current = window.setInterval(() => {
+        setCurrentIconIndex((prev) => (prev === 0 ? 1 : 0));
+      }, 250);
+    } else {
+      setCurrentIconIndex(0);
+    }
+
+    return () => {
+      if (iconIntervalRef.current) {
+        window.clearInterval(iconIntervalRef.current);
+        iconIntervalRef.current = null;
+      }
+    };
+  }, [isTyping]);
 
   const animatedLines = useMemo(() => {
     if (!fullMessage) {
@@ -110,6 +140,10 @@ export default function SlideViewer({
   }, [fullMessage, visibleText]);
 
   const linesToRender = animatedLines.length ? animatedLines : messages.map(m => m.text);
+
+  const displayedIconSrc = isTyping
+    ? (currentIconIndex === 0 ? iconSrc : "/speaker_2.png")
+    : iconSrc;
 
   return (
     <section className={styles.container}>
@@ -181,7 +215,7 @@ export default function SlideViewer({
       <div className={styles.messagePanel}>
         <div className={styles.messageCard}>
           <div className={styles.speaker}>
-            <img src={iconSrc} alt="話者アイコン" className={styles.icon} />
+            <img src={displayedIconSrc} alt="話者アイコン" className={styles.icon} />
             <span className={styles.speakerName}>{speakerName}</span>
           </div>
           <div className={styles.message}>
