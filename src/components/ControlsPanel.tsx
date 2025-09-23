@@ -31,7 +31,6 @@ type ControlsPanelProps = {
   totalPages: number;
 
   error: string | null;
-
 };
 
 export default function ControlsPanel({
@@ -198,7 +197,8 @@ export default function ControlsPanel({
         </div>
       </div>
 
-      <div className={styles.section}>
+      {/* 将来的に実装 */}
+      {/* <div className={styles.section}>
         <h2 className={styles.sectionTitle}>アイコン画像</h2>
 
         <p className={styles.sectionDescription}>
@@ -218,7 +218,7 @@ export default function ControlsPanel({
             onChange={onIconUpload}
           />
         </label>
-      </div>
+      </div> */}
 
       {slides.length > 0 && (
         <div className={styles.section}>
