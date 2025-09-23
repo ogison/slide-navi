@@ -12,6 +12,7 @@ type SpeakerMessageProps = {
   iconSrc: string;
   messages: MessageLine[];
   messageGroupId: string;
+  showClearEffect?: boolean;
 };
 
 export default function SpeakerMessage({
@@ -19,12 +20,15 @@ export default function SpeakerMessage({
   iconSrc,
   messages,
   messageGroupId,
+  showClearEffect = false,
 }: SpeakerMessageProps) {
   const [visibleText, setVisibleText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [currentIconIndex, setCurrentIconIndex] = useState(0);
   const timeoutRef = useRef<number | null>(null);
   const iconIntervalRef = useRef<number | null>(null);
+  const clearTimeoutRef = useRef<number | null>(null);
   const previousFullMessageRef = useRef<string>("");
   const previousGroupIdRef = useRef<string>("");
   const fullMessage = useMemo(() => messages.map(m => m.text).join("\n"), [messages]);
@@ -33,6 +37,10 @@ export default function SpeakerMessage({
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
+    }
+    if (clearTimeoutRef.current) {
+      window.clearTimeout(clearTimeoutRef.current);
+      clearTimeoutRef.current = null;
     }
 
     const previousFullMessage = previousFullMessageRef.current;
@@ -48,12 +56,14 @@ export default function SpeakerMessage({
         previousGroupId,
         isNewGroup,
         fullMessage,
-        previousFullMessage
+        previousFullMessage,
+        showClearEffect
       });
     }
 
     if (!fullMessage) {
       setVisibleText("");
+      setIsClearing(false);
       previousFullMessageRef.current = "";
       previousGroupIdRef.current = messageGroupId;
       setIsTyping(false);
@@ -62,10 +72,16 @@ export default function SpeakerMessage({
 
     let startIndex = 0;
     let shouldClearFirst = false;
+    let shouldShowClearEffect = false;
 
     if (isNewGroup) {
-      // New group - always clear first and reset state completely
-      shouldClearFirst = true;
+      // New group - check if we need clear effect
+      if (showClearEffect && previousFullMessage) {
+        shouldShowClearEffect = true;
+        shouldClearFirst = true;
+      } else {
+        shouldClearFirst = true;
+      }
       setVisibleText("");
       previousFullMessageRef.current = "";
     } else if (previousFullMessage && fullMessage.startsWith(previousFullMessage)) {
@@ -74,6 +90,9 @@ export default function SpeakerMessage({
       setVisibleText(previousFullMessage);
     } else {
       // This is a new message within the same group - clear first, then start typing
+      if (showClearEffect && previousFullMessage) {
+        shouldShowClearEffect = true;
+      }
       shouldClearFirst = true;
       setVisibleText("");
     }
@@ -101,7 +120,30 @@ export default function SpeakerMessage({
       }
     };
 
-    if (shouldClearFirst) {
+    if (shouldShowClearEffect) {
+      // Show clear effect with animation
+      setIsClearing(true);
+      setVisibleText("");
+
+      clearTimeoutRef.current = window.setTimeout(() => {
+        setIsClearing(false);
+        setIsTyping(true);
+
+        // Start typing after clear effect
+        let currentIndex = 0;
+        const typingTick = () => {
+          currentIndex += 1;
+          setVisibleText(fullMessage.slice(0, currentIndex));
+          if (currentIndex < fullMessage.length) {
+            timeoutRef.current = window.setTimeout(typingTick, TYPEWRITER_DELAY_MS);
+          } else {
+            timeoutRef.current = null;
+            setIsTyping(false);
+          }
+        };
+        typingTick();
+      }, 400); // Clear effect duration
+    } else if (shouldClearFirst) {
       // For new messages/groups, clear first then start after a brief delay
       setVisibleText("");
       const delay = isNewGroup ? 300 : 200; // Longer delay for new groups
@@ -131,9 +173,14 @@ export default function SpeakerMessage({
         window.clearTimeout(timeoutRef.current);
         timeoutRef.current = null;
       }
+      if (clearTimeoutRef.current) {
+        window.clearTimeout(clearTimeoutRef.current);
+        clearTimeoutRef.current = null;
+      }
       setIsTyping(false);
+      setIsClearing(false);
     };
-  }, [fullMessage, messageGroupId]);
+  }, [fullMessage, messageGroupId, showClearEffect]);
 
   useEffect(() => {
     if (iconIntervalRef.current) {
@@ -141,7 +188,7 @@ export default function SpeakerMessage({
       iconIntervalRef.current = null;
     }
 
-    if (isTyping) {
+    if (isTyping || isClearing) {
       iconIntervalRef.current = window.setInterval(() => {
         setCurrentIconIndex((prev) => (prev === 0 ? 1 : 0));
       }, 250);
@@ -155,7 +202,7 @@ export default function SpeakerMessage({
         iconIntervalRef.current = null;
       }
     };
-  }, [isTyping]);
+  }, [isTyping, isClearing]);
 
   const animatedLines = useMemo(() => {
     if (!fullMessage) {
@@ -171,7 +218,7 @@ export default function SpeakerMessage({
 
   const linesToRender = animatedLines.length ? animatedLines : messages.map(m => m.text);
 
-  const displayedIconSrc = isTyping
+  const displayedIconSrc = (isTyping || isClearing)
     ? (currentIconIndex === 0 ? iconSrc : "/speaker_2.png")
     : iconSrc;
 

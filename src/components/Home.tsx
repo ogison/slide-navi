@@ -37,11 +37,15 @@ export default function Home() {
     messageGroupId,
     handlePrev,
     handleNext,
+    handleMessagePrev,
+    handleMessageNext,
     jumpTo,
     handleScriptChange,
     handleAutoPlayToggle,
     handleAutoPlayDelayChange,
     resetSlideState,
+    slideScripts,
+    showClearEffect,
   } = useSlidePresentation(slides);
 
   // Initialize script placeholder when slides are loaded for the first time
@@ -77,6 +81,11 @@ export default function Home() {
           messageGroupId={messageGroupId}
           onPrev={handlePrev}
           onNext={handleNext}
+          onMessagePrev={handleMessagePrev}
+          onMessageNext={handleMessageNext}
+          currentGroupIndex={slideScripts[currentIndex]?.messageGroups ? slideScripts[currentIndex].messageGroups.findIndex(group => group.id === messageGroupId) : 0}
+          totalGroups={slideScripts[currentIndex]?.messageGroups?.length || 0}
+          showClearEffect={showClearEffect}
         />
         <ControlsPanel
           onPdfUpload={handlePdfUpload}

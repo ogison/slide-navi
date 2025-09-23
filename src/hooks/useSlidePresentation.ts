@@ -13,6 +13,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
   const [currentGroupIndex, setCurrentGroupIndex] = useState<number>(0);
   const [pendingSlideTransition, setPendingSlideTransition] =
     useState<boolean>(false);
+  const [showClearEffect, setShowClearEffect] = useState<boolean>(false);
 
   const totalPages = slides.length;
   const currentSlide = slides[currentIndex];
@@ -82,6 +83,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
       setVisibleMessageCount(null);
       setCurrentGroupIndex(0);
       setPendingSlideTransition(false);
+      setShowClearEffect(false);
       return;
     }
 
@@ -89,6 +91,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     // スライド切り替え時やメッセージ変更時は強制的にリセット
     setCurrentGroupIndex(0);
     setPendingSlideTransition(false);
+    setShowClearEffect(true); // 自動再生時はクリア効果を有効にする
     setVisibleMessageCount(currentMessageGroups.length > 0 ? 1 : 0);
   }, [isAutoPlaying, currentIndex, currentMessageGroups.length]);
 
@@ -110,6 +113,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
           }
           return previous + 1;
         });
+        setCurrentGroupIndex(0); // スライド遷移時にグループインデックスをリセット
         setPendingSlideTransition(false);
         return;
       }
@@ -125,7 +129,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
         if (previous >= totalGroups - 1) {
           // 最後のグループに達したら次のスライドへの遷移を予約
           setPendingSlideTransition(true);
-          return 0;
+          return previous; // 現在のインデックスを維持してスライド遷移まで待機
         }
         return previous + 1;
       });
@@ -153,11 +157,13 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     setVisibleMessageCount(null);
     setCurrentGroupIndex(0);
     setPendingSlideTransition(false);
+    setShowClearEffect(false);
     setIsAutoPlaying(false);
   }, []);
 
   const stopAutoPlay = useCallback(() => {
     setIsAutoPlaying(false);
+    setShowClearEffect(false);
   }, []);
 
   const goTo = useCallback(
@@ -183,6 +189,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
       setVisibleMessageCount(null);
       setCurrentGroupIndex(0);
       setPendingSlideTransition(false);
+      setShowClearEffect(false);
     },
     [totalPages]
   );
@@ -197,6 +204,49 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     goTo(1);
   }, [goTo, stopAutoPlay]);
 
+  const handleMessagePrev = useCallback(() => {
+    stopAutoPlay();
+
+    // 現在のスライドに前のメッセージがある場合
+    if (currentGroupIndex > 0) {
+      setCurrentGroupIndex(currentGroupIndex - 1);
+      return;
+    }
+
+    // 前のスライドがある場合、前のスライドの最後のメッセージに移動
+    if (currentIndex > 0) {
+      const prevSlideScript = slideScripts[currentIndex - 1];
+      const prevSlideLastGroupIndex = Math.max(0, prevSlideScript.messageGroups.length - 1);
+
+      setCurrentIndex(currentIndex - 1);
+      setCurrentGroupIndex(prevSlideLastGroupIndex);
+      setVisibleMessageCount(null);
+      setPendingSlideTransition(false);
+      setShowClearEffect(false);
+    }
+  }, [stopAutoPlay, currentGroupIndex, currentIndex, slideScripts]);
+
+  const handleMessageNext = useCallback(() => {
+    stopAutoPlay();
+
+    const totalGroups = currentMessageGroups.length;
+
+    // 現在のスライドに次のメッセージがある場合
+    if (currentGroupIndex < totalGroups - 1) {
+      setCurrentGroupIndex(currentGroupIndex + 1);
+      return;
+    }
+
+    // 次のスライドがある場合、次のスライドの最初のメッセージに移動
+    if (currentIndex < totalPages - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setCurrentGroupIndex(0);
+      setVisibleMessageCount(null);
+      setPendingSlideTransition(false);
+      setShowClearEffect(false);
+    }
+  }, [stopAutoPlay, currentMessageGroups.length, currentGroupIndex, currentIndex, totalPages]);
+
   const jumpTo = useCallback(
     (pageIndex: number) => {
       if (pageIndex >= 0 && pageIndex < totalPages) {
@@ -206,6 +256,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
         setVisibleMessageCount(null);
         setCurrentGroupIndex(0);
         setPendingSlideTransition(false);
+        setShowClearEffect(false);
       }
     },
     [stopAutoPlay, totalPages]
@@ -227,12 +278,14 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
         // 自動再生開始時はメッセージを強制リセットしてから開始
         setCurrentGroupIndex(0);
         setPendingSlideTransition(false);
+        setShowClearEffect(true); // 自動再生時はクリア効果を有効化
         setVisibleMessageCount(currentMessageGroups.length > 0 ? 1 : 0);
       } else {
         // 自動再生停止時は全メッセージを表示
         setVisibleMessageCount(null);
         setCurrentGroupIndex(0);
         setPendingSlideTransition(false);
+        setShowClearEffect(false); // 手動操作時はクリア効果を無効化
       }
 
       return next;
@@ -254,6 +307,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     displayedMessages,
     totalPages,
     slideScripts,
+    showClearEffect,
 
     // Message group data for SlideViewer
     messageGroupId:
@@ -263,6 +317,8 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     // Handlers
     handlePrev,
     handleNext,
+    handleMessagePrev,
+    handleMessageNext,
     jumpTo,
     handleScriptChange,
     handleAutoPlayToggle,
