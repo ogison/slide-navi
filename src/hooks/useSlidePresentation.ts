@@ -80,7 +80,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
   // Reset state when switching slides manually or auto-play starts
   useEffect(() => {
     if (!isAutoPlaying) {
-      setVisibleMessageCount(null);
+      setVisibleMessageCount(1); // 通常表示でもグループベース表示に変更
       setCurrentGroupIndex(0);
       setPendingSlideTransition(false);
       setShowClearEffect(false);
@@ -186,7 +186,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
         return nextIndex;
       });
       // Force reset message display when changing slides
-      setVisibleMessageCount(null);
+      setVisibleMessageCount(1); // グループベース表示に統一
       setCurrentGroupIndex(0);
       setPendingSlideTransition(false);
       setShowClearEffect(false);
@@ -220,7 +220,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
 
       setCurrentIndex(currentIndex - 1);
       setCurrentGroupIndex(prevSlideLastGroupIndex);
-      setVisibleMessageCount(null);
+      setVisibleMessageCount(1); // グループベース表示に統一
       setPendingSlideTransition(false);
       setShowClearEffect(false);
     }
@@ -241,7 +241,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     if (currentIndex < totalPages - 1) {
       setCurrentIndex(currentIndex + 1);
       setCurrentGroupIndex(0);
-      setVisibleMessageCount(null);
+      setVisibleMessageCount(1); // グループベース表示に統一
       setPendingSlideTransition(false);
       setShowClearEffect(false);
     }
@@ -253,7 +253,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
         stopAutoPlay();
         setCurrentIndex(pageIndex);
         // Force reset message display when jumping to a slide
-        setVisibleMessageCount(null);
+        setVisibleMessageCount(1); // グループベース表示に統一
         setCurrentGroupIndex(0);
         setPendingSlideTransition(false);
         setShowClearEffect(false);
@@ -281,8 +281,8 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
         setShowClearEffect(true); // 自動再生時はクリア効果を有効化
         setVisibleMessageCount(currentMessageGroups.length > 0 ? 1 : 0);
       } else {
-        // 自動再生停止時は全メッセージを表示
-        setVisibleMessageCount(null);
+        // 自動再生停止時もグループベース表示を維持
+        setVisibleMessageCount(1); // グループベース表示に統一
         setCurrentGroupIndex(0);
         setPendingSlideTransition(false);
         setShowClearEffect(false); // 手動操作時はクリア効果を無効化
