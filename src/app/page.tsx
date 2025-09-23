@@ -9,6 +9,7 @@ import type {
   SlideImage,
   SlideScript,
   MessageLine,
+  MessageGroup,
   TransitionType,
 } from "../types/slides";
 import styles from "./Home.module.scss";
@@ -47,36 +48,85 @@ const parseScript = (script: string): SlideScript[] => {
   }
 
   const normalized = script.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  const slides = normalized
-    .split(/\n\s*\n/g)
-    .map((section) => section.trim())
-    .filter(Boolean);
 
-  return slides.map((slideText) => {
-    const lines = slideText.split("\n").filter((line) => line.trim());
+  // Split by lines starting with #
+  const sections: string[] = [];
+  const lines = normalized.split('\n');
+  let currentSection = '';
+
+  for (const line of lines) {
+    if (line.startsWith('# ')) {
+      if (currentSection.trim()) {
+        sections.push(currentSection.trim());
+      }
+      currentSection = line;
+    } else {
+      currentSection += '\n' + line;
+    }
+  }
+
+  // Add the last section
+  if (currentSection.trim()) {
+    sections.push(currentSection.trim());
+  }
+
+  return sections.map((slideText, slideIndex) => {
+    const lines = slideText.split("\n");
     let title: string | undefined;
     const messages: MessageLine[] = [];
+    const messageGroups: MessageGroup[] = [];
     const transition = {
       type: "immediate" as TransitionType,
     };
+
+    let currentGroup: string[] = [];
+    let groupIndex = 0;
+
+    const finishCurrentGroup = () => {
+      if (currentGroup.length > 0) {
+        const groupText = currentGroup.join('\n');
+        const parts = splitByPunctuation(groupText);
+        const groupMessages: MessageLine[] = parts.map((part) => ({ text: part }));
+
+        // Add to messages array for backward compatibility
+        groupMessages.forEach((msg) => {
+          messages.push(msg);
+        });
+
+        // Add to messageGroups for group-based display
+        messageGroups.push({
+          id: `slide-${slideIndex}-group-${groupIndex}`,
+          messages: groupMessages
+        });
+
+        currentGroup = [];
+        groupIndex++;
+      }
+    };
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
-      // Check for title
+      // Check for title (first line starting with #)
       if (line.startsWith("# ")) {
         title = line.substring(2).trim();
         continue;
       }
 
+      // If empty line, finish current group
+      if (!line.trim()) {
+        finishCurrentGroup();
+        continue;
+      }
 
-      // Regular message
-      const parts = splitByPunctuation(line);
-      parts.forEach((part) => {
-        messages.push({ text: part });
-      });
+      // Add line to current group
+      currentGroup.push(line);
     }
 
-    return { title, messages, transition };
+    // Add remaining group if any
+    finishCurrentGroup();
+
+    return { title, messages, messageGroups, transition };
   });
 };
 
@@ -126,6 +176,7 @@ export default function Home() {
   const [visibleMessageCount, setVisibleMessageCount] = useState<number | null>(
     null
   );
+  const [currentGroupIndex, setCurrentGroupIndex] = useState<number>(0);
 
   useEffect(() => {
     return () => {
@@ -148,7 +199,7 @@ export default function Home() {
     const result: SlideScript[] = [];
     for (let i = 0; i < totalPages; i++) {
       result.push(
-        scripts[i] || { messages: [], transition: { type: "immediate" } }
+        scripts[i] || { messages: [], messageGroups: [], transition: { type: "immediate" } }
       );
     }
     return result;
@@ -156,73 +207,78 @@ export default function Home() {
 
   const currentSlideScript = slideScripts[currentIndex] || {
     messages: [],
+    messageGroups: [],
     transition: { type: "immediate" },
   };
   const currentMessages = currentSlideScript.messages;
-  const currentTransition = currentSlideScript.transition;
+  const currentMessageGroups = currentSlideScript.messageGroups;
   const currentTitle = currentSlideScript.title;
 
   const displayedMessages = useMemo(() => {
     if (visibleMessageCount === null) {
       return currentMessages;
     }
+
+    // グループベースの表示制御
+    if (currentMessageGroups.length > 0) {
+      const targetGroup = currentMessageGroups[Math.min(currentGroupIndex, currentMessageGroups.length - 1)];
+      return targetGroup ? targetGroup.messages : [];
+    }
+
     return currentMessages.slice(
       0,
       Math.min(visibleMessageCount, currentMessages.length)
     );
-  }, [currentMessages, visibleMessageCount]);
+  }, [currentMessages, currentMessageGroups, currentGroupIndex, visibleMessageCount]);
 
 
   useEffect(() => {
     if (!isAutoPlaying) {
       setVisibleMessageCount(null);
+      setCurrentGroupIndex(0);
       return;
     }
 
-    setVisibleMessageCount(currentMessages.length > 0 ? 1 : 0);
-  }, [isAutoPlaying, currentIndex, currentMessages.length]);
+    // 自動再生時は最初のメッセージグループから開始
+    // スライド切り替え時やメッセージ変更時は強制的にリセット
+    setCurrentGroupIndex(0);
+    setVisibleMessageCount(currentMessageGroups.length > 0 ? 1 : 0);
+  }, [isAutoPlaying, currentIndex, currentMessageGroups.length]);
 
   useEffect(() => {
     if (!isAutoPlaying || !totalPages) {
       return;
     }
 
+    const totalGroups = currentMessageGroups.length;
 
-    const totalMessages = currentMessages.length;
-    const visibleMessages =
-      visibleMessageCount === null
-        ? totalMessages
-        : Math.min(visibleMessageCount, totalMessages);
-
-    const scheduleNextMessage = () => {
-      setVisibleMessageCount((previous) => {
-        if (previous === null) {
-          return previous;
+    const scheduleNextGroup = () => {
+      setCurrentGroupIndex((previous) => {
+        if (previous >= totalGroups - 1) {
+          // 最後のグループに達したら次のスライドへ
+          scheduleNextSlide();
+          return 0;
         }
-        return Math.min(previous + 1, totalMessages);
+        return previous + 1;
       });
     };
 
     const scheduleNextSlide = () => {
-      const moveToNext = () => {
-        setCurrentIndex((previous) => {
-          if (previous >= totalPages - 1) {
-            setIsAutoPlaying(false);
-            return previous;
-          }
-          return previous + 1;
-        });
-      };
-
-      moveToNext();
+      setCurrentIndex((previous) => {
+        if (previous >= totalPages - 1) {
+          setIsAutoPlaying(false);
+          return previous;
+        }
+        return previous + 1;
+      });
     };
 
     // Schedule next action
     const timer = window.setTimeout(() => {
-      if (totalMessages === 0 || visibleMessages >= totalMessages) {
+      if (totalGroups === 0) {
         scheduleNextSlide();
       } else {
-        scheduleNextMessage();
+        scheduleNextGroup();
       }
     }, autoPlayDelaySeconds * 1000);
 
@@ -232,9 +288,8 @@ export default function Home() {
     autoPlayDelaySeconds,
     totalPages,
     currentIndex,
-    currentMessages,
-    visibleMessageCount,
-    currentTransition,
+    currentMessageGroups,
+    currentGroupIndex,
   ]);
 
   const handlePdfUpload = useCallback(
@@ -367,6 +422,9 @@ export default function Home() {
 
         return nextIndex;
       });
+      // Force reset message display when changing slides
+      setVisibleMessageCount(null);
+      setCurrentGroupIndex(0);
     },
     [totalPages]
   );
@@ -386,6 +444,9 @@ export default function Home() {
       if (pageIndex >= 0 && pageIndex < totalPages) {
         stopAutoPlay();
         setCurrentIndex(pageIndex);
+        // Force reset message display when jumping to a slide
+        setVisibleMessageCount(null);
+        setCurrentGroupIndex(0);
       }
     },
     [stopAutoPlay, totalPages]
@@ -403,13 +464,19 @@ export default function Home() {
     setIsAutoPlaying((previous) => {
       const next = !previous;
 
-      setVisibleMessageCount(
-        next ? (currentMessages.length > 0 ? 1 : 0) : null
-      );
+      if (next) {
+        // 自動再生開始時はメッセージを強制リセットしてから開始
+        setCurrentGroupIndex(0);
+        setVisibleMessageCount(currentMessageGroups.length > 0 ? 1 : 0);
+      } else {
+        // 自動再生停止時は全メッセージを表示
+        setVisibleMessageCount(null);
+        setCurrentGroupIndex(0);
+      }
 
       return next;
     });
-  }, [currentMessages.length, totalPages]);
+  }, [currentMessageGroups.length, totalPages]);
 
   const handleAutoPlayDelayChange = useCallback((value: number) => {
     setAutoPlayDelaySeconds(Math.max(1, Math.floor(value)));
@@ -429,6 +496,7 @@ export default function Home() {
           iconSrc={iconSrc}
           messages={displayedMessages}
           slideTitle={currentTitle}
+          messageGroupId={currentMessageGroups[currentGroupIndex]?.id || `slide-${currentIndex}-group-0`}
           onPrev={handlePrev}
           onNext={handleNext}
         />

@@ -124,8 +124,8 @@ export default function ControlsPanel({
 
         <p className={styles.sectionDescription}>
           {hasSlides
-            ? "空白行でスライドを区切ります。# で見出しを指定。"
-            : "PDFをアップロードすると、空白行で区切った台本を入力できます。"}
+            ? "# で始まる行でスライドを区切ります。改行でメッセージを区切ります。"
+            : "PDFをアップロードすると、# で区切った台本を入力できます。"}
         </p>
       </div>
 
