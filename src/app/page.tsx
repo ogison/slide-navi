@@ -56,11 +56,9 @@ const parseScript = (script: string): SlideScript[] => {
     const lines = slideText.split("\n").filter((line) => line.trim());
     let title: string | undefined;
     const messages: MessageLine[] = [];
-    let transition: { type: TransitionType; delay?: number } = {
-      type: "immediate",
+    const transition = {
+      type: "immediate" as TransitionType,
     };
-    let defaultSpeaker: string | undefined;
-
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
@@ -70,50 +68,12 @@ const parseScript = (script: string): SlideScript[] => {
         continue;
       }
 
-      // Check for transition at the end of the last line
-      if (i === lines.length - 1) {
-        const transitionMatch = line.match(/>>(.+)$/);
-        if (transitionMatch) {
-          const transitionText = transitionMatch[1].trim();
-          const cleanLine = line.replace(/>>(.+)$/, "").trim();
 
-          if (transitionText === "click") {
-            transition = { type: "click" };
-          } else if (transitionText.endsWith("s")) {
-            const seconds = parseFloat(transitionText.slice(0, -1));
-            if (!isNaN(seconds)) {
-              transition = { type: "wait", delay: seconds };
-            }
-          }
-
-          if (cleanLine) {
-            lines[i] = cleanLine;
-          } else {
-            continue;
-          }
-        }
-      }
-
-      // Parse message with speaker
-      const speakerMatch = line.match(/^@([^:]+):\s*(.*)/);
-      if (speakerMatch) {
-        const speaker = speakerMatch[1].trim();
-        const text = speakerMatch[2].trim();
-        defaultSpeaker = speaker;
-        if (text) {
-          // Split by punctuation if long
-          const parts = splitByPunctuation(text);
-          parts.forEach((part) => {
-            messages.push({ text: part, speaker });
-          });
-        }
-      } else {
-        // Regular message
-        const parts = splitByPunctuation(line);
-        parts.forEach((part) => {
-          messages.push({ text: part, speaker: defaultSpeaker });
-        });
-      }
+      // Regular message
+      const parts = splitByPunctuation(line);
+      parts.forEach((part) => {
+        messages.push({ text: part });
+      });
     }
 
     return { title, messages, transition };
@@ -156,8 +116,6 @@ export default function Home() {
   const [slides, setSlides] = useState<SlideImage[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scriptInput, setScriptInput] = useState<string>("");
-  const [defaultSpeakerName, setDefaultSpeakerName] =
-    useState<string>("Dr. Hikari");
   const [iconSrc, setIconSrc] = useState<string>("/speaker.png");
   const [customIconUrl, setCustomIconUrl] = useState<string | null>(null);
   const [documentName, setDocumentName] = useState<string>("サンプル資料.pdf");
@@ -168,7 +126,6 @@ export default function Home() {
   const [visibleMessageCount, setVisibleMessageCount] = useState<number | null>(
     null
   );
-  const [waitingForClick, setWaitingForClick] = useState<boolean>(false);
 
   useEffect(() => {
     return () => {
@@ -215,22 +172,14 @@ export default function Home() {
     );
   }, [currentMessages, visibleMessageCount]);
 
-  const currentSpeaker = useMemo(() => {
-    const lastMessageWithSpeaker = [...displayedMessages]
-      .reverse()
-      .find((msg) => msg.speaker);
-    return lastMessageWithSpeaker?.speaker || defaultSpeakerName;
-  }, [displayedMessages, defaultSpeakerName]);
 
   useEffect(() => {
     if (!isAutoPlaying) {
       setVisibleMessageCount(null);
-      setWaitingForClick(false);
       return;
     }
 
     setVisibleMessageCount(currentMessages.length > 0 ? 1 : 0);
-    setWaitingForClick(false);
   }, [isAutoPlaying, currentIndex, currentMessages.length]);
 
   useEffect(() => {
@@ -238,10 +187,6 @@ export default function Home() {
       return;
     }
 
-    // Handle click-wait mode
-    if (waitingForClick) {
-      return;
-    }
 
     const totalMessages = currentMessages.length;
     const visibleMessages =
@@ -259,17 +204,6 @@ export default function Home() {
     };
 
     const scheduleNextSlide = () => {
-      // Check transition type
-      if (currentTransition.type === "click") {
-        setWaitingForClick(true);
-        return;
-      }
-
-      const delay =
-        currentTransition.type === "wait" && currentTransition.delay
-          ? currentTransition.delay * 1000
-          : 0;
-
       const moveToNext = () => {
         setCurrentIndex((previous) => {
           if (previous >= totalPages - 1) {
@@ -280,12 +214,7 @@ export default function Home() {
         });
       };
 
-      if (delay > 0) {
-        const timer = window.setTimeout(moveToNext, delay);
-        return () => window.clearTimeout(timer);
-      } else {
-        moveToNext();
-      }
+      moveToNext();
     };
 
     // Schedule next action
@@ -306,7 +235,6 @@ export default function Home() {
     currentMessages,
     visibleMessageCount,
     currentTransition,
-    waitingForClick,
   ]);
 
   const handlePdfUpload = useCallback(
@@ -445,33 +373,18 @@ export default function Home() {
 
   const handlePrev = useCallback(() => {
     stopAutoPlay();
-    setWaitingForClick(false);
     goTo(-1);
   }, [goTo, stopAutoPlay]);
 
   const handleNext = useCallback(() => {
-    // If waiting for click in auto-play mode, proceed to next slide
-    if (waitingForClick && isAutoPlaying) {
-      setWaitingForClick(false);
-      setCurrentIndex((previous) => {
-        if (previous >= totalPages - 1) {
-          setIsAutoPlaying(false);
-          return previous;
-        }
-        return previous + 1;
-      });
-      return;
-    }
     stopAutoPlay();
-    setWaitingForClick(false);
     goTo(1);
-  }, [goTo, stopAutoPlay, waitingForClick, isAutoPlaying, totalPages]);
+  }, [goTo, stopAutoPlay]);
 
   const jumpTo = useCallback(
     (pageIndex: number) => {
       if (pageIndex >= 0 && pageIndex < totalPages) {
         stopAutoPlay();
-        setWaitingForClick(false);
         setCurrentIndex(pageIndex);
       }
     },
@@ -493,7 +406,6 @@ export default function Home() {
       setVisibleMessageCount(
         next ? (currentMessages.length > 0 ? 1 : 0) : null
       );
-      setWaitingForClick(false);
 
       return next;
     });
@@ -513,23 +425,20 @@ export default function Home() {
           currentIndex={currentIndex}
           documentName={documentName}
           isLoading={isLoading}
-          speakerName={currentSpeaker}
+          speakerName="Dr. Hikari"
           iconSrc={iconSrc}
           messages={displayedMessages}
           slideTitle={currentTitle}
-          waitingForClick={waitingForClick}
           onPrev={handlePrev}
           onNext={handleNext}
         />
         <ControlsPanel
           onPdfUpload={handlePdfUpload}
           onIconUpload={handleIconUpload}
-          onSpeakerNameChange={setDefaultSpeakerName}
           onScriptChange={handleScriptChange}
           onPageJump={jumpTo}
           onAutoPlayToggle={handleAutoPlayToggle}
           onAutoPlayDelayChange={handleAutoPlayDelayChange}
-          speakerName={defaultSpeakerName}
           script={scriptInput}
           slides={slides}
           currentIndex={currentIndex}
@@ -537,7 +446,6 @@ export default function Home() {
           autoPlayDelaySeconds={autoPlayDelaySeconds}
           totalPages={totalPages}
           error={error}
-          waitingForClick={waitingForClick}
         />
       </main>
     </div>

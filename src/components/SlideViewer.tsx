@@ -17,7 +17,6 @@ type SlideViewerProps = {
   iconSrc: string;
   messages: MessageLine[];
   slideTitle?: string;
-  waitingForClick?: boolean;
   onPrev: () => void;
   onNext: () => void;
 };
@@ -32,7 +31,6 @@ export default function SlideViewer({
   iconSrc,
   messages,
   slideTitle,
-  waitingForClick,
   onPrev,
   onNext,
 }: SlideViewerProps) {
@@ -163,11 +161,6 @@ export default function SlideViewer({
           )}
         </div>
         <div className={styles.actions}>
-          {waitingForClick && (
-            <span className={styles.clickWaitIndicator}>
-              クリック待ち
-            </span>
-          )}
           <button
             type="button"
             className={styles.navButton}
@@ -178,7 +171,7 @@ export default function SlideViewer({
           </button>
           <button
             type="button"
-            className={`${styles.navButton} ${styles.nextButton} ${waitingForClick ? styles.blinking : ''}`}
+            className={`${styles.navButton} ${styles.nextButton}`}
             onClick={onNext}
             disabled={!totalPages || isLoading}
           >

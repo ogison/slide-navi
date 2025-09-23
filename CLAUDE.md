@@ -18,14 +18,12 @@ This is a **SlideNavi** application - a PDF slide presenter with speaker notes a
 
 - **`src/components/SlideViewer.tsx`**: Primary viewer component featuring:
   - Slide display with navigation controls
-  - Typewriter effect for speaker messages (45ms delay per character)
-  - Speaker info display with customizable icon
+  - Typewriter effect for messages (45ms delay per character)
 
 - **`src/components/ControlsPanel.tsx`**: Control interface providing:
   - PDF upload functionality
-  - Speaker name and icon customization
   - Script editor with page-based segmentation (empty lines as separators)
-  - Auto-play controls with timing configuration
+  - Auto-play controls with fixed interval timing
   - Page jump navigation for loaded slides
 
 ### Key Features
