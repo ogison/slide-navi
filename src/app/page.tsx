@@ -177,6 +177,7 @@ export default function Home() {
     null
   );
   const [currentGroupIndex, setCurrentGroupIndex] = useState<number>(0);
+  const [pendingSlideTransition, setPendingSlideTransition] = useState<boolean>(false);
 
   useEffect(() => {
     return () => {
@@ -195,13 +196,38 @@ export default function Home() {
       return scripts;
     }
 
-    // Ensure we have scripts for all slides
+    // Scripts are mapped to slides in order, regardless of page count
+    // This ensures all script sections are used, even if there are more scripts than slides
     const result: SlideScript[] = [];
+
     for (let i = 0; i < totalPages; i++) {
-      result.push(
-        scripts[i] || { messages: [], messageGroups: [], transition: { type: "immediate" } }
-      );
+      if (i < scripts.length) {
+        // Use the corresponding script
+        result.push(scripts[i]);
+      } else {
+        // If no more scripts available, use empty script
+        result.push({
+          messages: [],
+          messageGroups: [],
+          transition: { type: "immediate" }
+        });
+      }
     }
+
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Script parsing debug:', {
+        totalScripts: scripts.length,
+        totalPages,
+        scriptTitles: scripts.map(s => s.title).filter(Boolean),
+        mapping: result.map((script, index) => ({
+          slideIndex: index,
+          title: script.title || '(no title)',
+          hasMessages: script.messages.length > 0
+        }))
+      });
+    }
+
     return result;
   }, [scriptInput, totalPages]);
 
@@ -221,27 +247,51 @@ export default function Home() {
 
     // グループベースの表示制御
     if (currentMessageGroups.length > 0) {
-      const targetGroup = currentMessageGroups[Math.min(currentGroupIndex, currentMessageGroups.length - 1)];
-      return targetGroup ? targetGroup.messages : [];
+      // グループインデックスが範囲内かチェック
+      if (currentGroupIndex < currentMessageGroups.length) {
+        const targetGroup = currentMessageGroups[currentGroupIndex];
+
+        // Debug logging in development
+        if (process.env.NODE_ENV === 'development') {
+          console.log('DisplayedMessages debug:', {
+            slideIndex: currentIndex,
+            groupIndex: currentGroupIndex,
+            totalGroups: currentMessageGroups.length,
+            targetGroupId: targetGroup?.id,
+            targetMessages: targetGroup?.messages.map(m => m.text),
+            allGroups: currentMessageGroups.map(g => ({
+              id: g.id,
+              messages: g.messages.map(m => m.text)
+            }))
+          });
+        }
+
+        return targetGroup ? targetGroup.messages : [];
+      } else {
+        // グループインデックスが範囲外の場合は空配列を返す
+        return [];
+      }
     }
 
     return currentMessages.slice(
       0,
       Math.min(visibleMessageCount, currentMessages.length)
     );
-  }, [currentMessages, currentMessageGroups, currentGroupIndex, visibleMessageCount]);
+  }, [currentMessages, currentMessageGroups, currentGroupIndex, visibleMessageCount, currentIndex]);
 
 
   useEffect(() => {
     if (!isAutoPlaying) {
       setVisibleMessageCount(null);
       setCurrentGroupIndex(0);
+      setPendingSlideTransition(false);
       return;
     }
 
     // 自動再生時は最初のメッセージグループから開始
     // スライド切り替え時やメッセージ変更時は強制的にリセット
     setCurrentGroupIndex(0);
+    setPendingSlideTransition(false);
     setVisibleMessageCount(currentMessageGroups.length > 0 ? 1 : 0);
   }, [isAutoPlaying, currentIndex, currentMessageGroups.length]);
 
@@ -252,35 +302,39 @@ export default function Home() {
 
     const totalGroups = currentMessageGroups.length;
 
-    const scheduleNextGroup = () => {
+    const scheduleNextAction = () => {
+      // スライド遷移が待機中の場合は、次のスライドに移動
+      if (pendingSlideTransition) {
+        setCurrentIndex((previous) => {
+          if (previous >= totalPages - 1) {
+            setIsAutoPlaying(false);
+            return previous;
+          }
+          return previous + 1;
+        });
+        setPendingSlideTransition(false);
+        return;
+      }
+
+      // グループが存在しない場合は次のスライドへ
+      if (totalGroups === 0) {
+        setPendingSlideTransition(true);
+        return;
+      }
+
+      // 次のグループに移動、または次のスライドへの遷移を予約
       setCurrentGroupIndex((previous) => {
         if (previous >= totalGroups - 1) {
-          // 最後のグループに達したら次のスライドへ
-          scheduleNextSlide();
+          // 最後のグループに達したら次のスライドへの遷移を予約
+          setPendingSlideTransition(true);
           return 0;
         }
         return previous + 1;
       });
     };
 
-    const scheduleNextSlide = () => {
-      setCurrentIndex((previous) => {
-        if (previous >= totalPages - 1) {
-          setIsAutoPlaying(false);
-          return previous;
-        }
-        return previous + 1;
-      });
-    };
-
     // Schedule next action
-    const timer = window.setTimeout(() => {
-      if (totalGroups === 0) {
-        scheduleNextSlide();
-      } else {
-        scheduleNextGroup();
-      }
-    }, autoPlayDelaySeconds * 1000);
+    const timer = window.setTimeout(scheduleNextAction, autoPlayDelaySeconds * 1000);
 
     return () => window.clearTimeout(timer);
   }, [
@@ -290,6 +344,7 @@ export default function Home() {
     currentIndex,
     currentMessageGroups,
     currentGroupIndex,
+    pendingSlideTransition,
   ]);
 
   const handlePdfUpload = useCallback(
@@ -425,6 +480,7 @@ export default function Home() {
       // Force reset message display when changing slides
       setVisibleMessageCount(null);
       setCurrentGroupIndex(0);
+      setPendingSlideTransition(false);
     },
     [totalPages]
   );
@@ -447,6 +503,7 @@ export default function Home() {
         // Force reset message display when jumping to a slide
         setVisibleMessageCount(null);
         setCurrentGroupIndex(0);
+        setPendingSlideTransition(false);
       }
     },
     [stopAutoPlay, totalPages]
@@ -467,11 +524,13 @@ export default function Home() {
       if (next) {
         // 自動再生開始時はメッセージを強制リセットしてから開始
         setCurrentGroupIndex(0);
+        setPendingSlideTransition(false);
         setVisibleMessageCount(currentMessageGroups.length > 0 ? 1 : 0);
       } else {
         // 自動再生停止時は全メッセージを表示
         setVisibleMessageCount(null);
         setCurrentGroupIndex(0);
+        setPendingSlideTransition(false);
       }
 
       return next;

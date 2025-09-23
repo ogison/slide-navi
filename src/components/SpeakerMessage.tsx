@@ -41,6 +41,17 @@ export default function SpeakerMessage({
     // Check if the group ID has changed
     const isNewGroup = previousGroupId !== messageGroupId;
 
+    // Debug logging in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('SpeakerMessage debug:', {
+        messageGroupId,
+        previousGroupId,
+        isNewGroup,
+        fullMessage,
+        previousFullMessage
+      });
+    }
+
     if (!fullMessage) {
       setVisibleText("");
       previousFullMessageRef.current = "";
@@ -53,9 +64,10 @@ export default function SpeakerMessage({
     let shouldClearFirst = false;
 
     if (isNewGroup) {
-      // New group - always clear first
+      // New group - always clear first and reset state completely
       shouldClearFirst = true;
       setVisibleText("");
+      previousFullMessageRef.current = "";
     } else if (previousFullMessage && fullMessage.startsWith(previousFullMessage)) {
       // This is a continuation of the previous message in the same group
       startIndex = previousFullMessage.length;
@@ -92,9 +104,22 @@ export default function SpeakerMessage({
     if (shouldClearFirst) {
       // For new messages/groups, clear first then start after a brief delay
       setVisibleText("");
+      const delay = isNewGroup ? 300 : 200; // Longer delay for new groups
       timeoutRef.current = window.setTimeout(() => {
-        tick();
-      }, 200); // Brief delay to show the clear state
+        // 必ず最新の状態で開始するため、startIndexを0にリセット
+        let currentIndex = 0;
+        const typingTick = () => {
+          currentIndex += 1;
+          setVisibleText(fullMessage.slice(0, currentIndex));
+          if (currentIndex < fullMessage.length) {
+            timeoutRef.current = window.setTimeout(typingTick, TYPEWRITER_DELAY_MS);
+          } else {
+            timeoutRef.current = null;
+            setIsTyping(false);
+          }
+        };
+        typingTick();
+      }, delay);
     } else if (startIndex === 0) {
       tick();
     } else {
