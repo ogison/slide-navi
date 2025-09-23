@@ -47,30 +47,68 @@ const parseScript = (script: string): SlideScript[] => {
   }
 
   const normalized = script.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  const slides = normalized
-    .split(/\n\s*\n/g)
-    .map((section) => section.trim())
-    .filter(Boolean);
 
-  return slides.map((slideText) => {
-    const lines = slideText.split("\n").filter((line) => line.trim());
+  // Split by lines starting with #
+  const sections: string[] = [];
+  const lines = normalized.split('\n');
+  let currentSection = '';
+
+  for (const line of lines) {
+    if (line.startsWith('# ')) {
+      if (currentSection.trim()) {
+        sections.push(currentSection.trim());
+      }
+      currentSection = line;
+    } else {
+      currentSection += '\n' + line;
+    }
+  }
+
+  // Add the last section
+  if (currentSection.trim()) {
+    sections.push(currentSection.trim());
+  }
+
+  return sections.map((slideText) => {
+    const lines = slideText.split("\n");
     let title: string | undefined;
     const messages: MessageLine[] = [];
     const transition = {
       type: "immediate" as TransitionType,
     };
+
+    let currentGroup: string[] = [];
+
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
-      // Check for title
+      // Check for title (first line starting with #)
       if (line.startsWith("# ")) {
         title = line.substring(2).trim();
         continue;
       }
 
+      // If empty line, finish current group
+      if (!line.trim()) {
+        if (currentGroup.length > 0) {
+          const groupText = currentGroup.join('\n');
+          const parts = splitByPunctuation(groupText);
+          parts.forEach((part) => {
+            messages.push({ text: part });
+          });
+          currentGroup = [];
+        }
+        continue;
+      }
 
-      // Regular message
-      const parts = splitByPunctuation(line);
+      // Add line to current group
+      currentGroup.push(line);
+    }
+
+    // Add remaining group if any
+    if (currentGroup.length > 0) {
+      const groupText = currentGroup.join('\n');
+      const parts = splitByPunctuation(groupText);
       parts.forEach((part) => {
         messages.push({ text: part });
       });
@@ -159,7 +197,6 @@ export default function Home() {
     transition: { type: "immediate" },
   };
   const currentMessages = currentSlideScript.messages;
-  const currentTransition = currentSlideScript.transition;
   const currentTitle = currentSlideScript.title;
 
   const displayedMessages = useMemo(() => {
@@ -179,6 +216,8 @@ export default function Home() {
       return;
     }
 
+    // 自動再生時は最初のメッセージグループから開始
+    // スライド切り替え時やメッセージ変更時は強制的にリセット
     setVisibleMessageCount(currentMessages.length > 0 ? 1 : 0);
   }, [isAutoPlaying, currentIndex, currentMessages.length]);
 
@@ -186,7 +225,6 @@ export default function Home() {
     if (!isAutoPlaying || !totalPages) {
       return;
     }
-
 
     const totalMessages = currentMessages.length;
     const visibleMessages =
@@ -204,17 +242,13 @@ export default function Home() {
     };
 
     const scheduleNextSlide = () => {
-      const moveToNext = () => {
-        setCurrentIndex((previous) => {
-          if (previous >= totalPages - 1) {
-            setIsAutoPlaying(false);
-            return previous;
-          }
-          return previous + 1;
-        });
-      };
-
-      moveToNext();
+      setCurrentIndex((previous) => {
+        if (previous >= totalPages - 1) {
+          setIsAutoPlaying(false);
+          return previous;
+        }
+        return previous + 1;
+      });
     };
 
     // Schedule next action
@@ -234,7 +268,6 @@ export default function Home() {
     currentIndex,
     currentMessages,
     visibleMessageCount,
-    currentTransition,
   ]);
 
   const handlePdfUpload = useCallback(
@@ -367,6 +400,8 @@ export default function Home() {
 
         return nextIndex;
       });
+      // Force reset message display when changing slides
+      setVisibleMessageCount(null);
     },
     [totalPages]
   );
@@ -386,6 +421,8 @@ export default function Home() {
       if (pageIndex >= 0 && pageIndex < totalPages) {
         stopAutoPlay();
         setCurrentIndex(pageIndex);
+        // Force reset message display when jumping to a slide
+        setVisibleMessageCount(null);
       }
     },
     [stopAutoPlay, totalPages]
@@ -403,9 +440,13 @@ export default function Home() {
     setIsAutoPlaying((previous) => {
       const next = !previous;
 
-      setVisibleMessageCount(
-        next ? (currentMessages.length > 0 ? 1 : 0) : null
-      );
+      if (next) {
+        // 自動再生開始時はメッセージを強制リセットしてから開始
+        setVisibleMessageCount(currentMessages.length > 0 ? 1 : 0);
+      } else {
+        // 自動再生停止時は全メッセージを表示
+        setVisibleMessageCount(null);
+      }
 
       return next;
     });

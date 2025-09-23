@@ -1,0 +1,78 @@
+.messagePanel {
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+  background-color: rgba(15, 23, 42, 0.7);
+  border-top: 1px solid rgba(30, 41, 59, 0.7);
+}
+
+.messageCard {
+  display: flex;
+  gap: 1rem;
+  width: min(99%, 48rem);
+  padding: 1rem;
+  background: rgba(248, 250, 252, 0.95);
+  border-radius: 1.25rem;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.55);
+}
+
+.speaker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 6.5rem;
+}
+
+.icon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  object-fit: cover;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+}
+
+.speakerName {
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #475569;
+}
+
+.message {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid rgba(203, 213, 225, 0.8);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.messageLine {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #1e293b;
+}
+
+@media (max-width: 640px) {
+  .messageCard {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .speaker {
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  .speakerName {
+    letter-spacing: 0.1em;
+  }
+}
