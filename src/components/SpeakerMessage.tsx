@@ -11,12 +11,14 @@ type SpeakerMessageProps = {
   speakerName: string;
   iconSrc: string;
   messages: MessageLine[];
+  messageGroupId: string;
 };
 
 export default function SpeakerMessage({
   speakerName,
   iconSrc,
   messages,
+  messageGroupId,
 }: SpeakerMessageProps) {
   const [visibleText, setVisibleText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -24,6 +26,7 @@ export default function SpeakerMessage({
   const timeoutRef = useRef<number | null>(null);
   const iconIntervalRef = useRef<number | null>(null);
   const previousFullMessageRef = useRef<string>("");
+  const previousGroupIdRef = useRef<string>("");
   const fullMessage = useMemo(() => messages.map(m => m.text).join("\n"), [messages]);
 
   useEffect(() => {
@@ -33,10 +36,15 @@ export default function SpeakerMessage({
     }
 
     const previousFullMessage = previousFullMessageRef.current;
+    const previousGroupId = previousGroupIdRef.current;
+
+    // Check if the group ID has changed
+    const isNewGroup = previousGroupId !== messageGroupId;
 
     if (!fullMessage) {
       setVisibleText("");
       previousFullMessageRef.current = "";
+      previousGroupIdRef.current = messageGroupId;
       setIsTyping(false);
       return;
     }
@@ -44,18 +52,22 @@ export default function SpeakerMessage({
     let startIndex = 0;
     let shouldClearFirst = false;
 
-    // Check if this is a completely new message or a continuation
-    if (previousFullMessage && fullMessage.startsWith(previousFullMessage)) {
-      // This is a continuation of the previous message
+    if (isNewGroup) {
+      // New group - always clear first
+      shouldClearFirst = true;
+      setVisibleText("");
+    } else if (previousFullMessage && fullMessage.startsWith(previousFullMessage)) {
+      // This is a continuation of the previous message in the same group
       startIndex = previousFullMessage.length;
       setVisibleText(previousFullMessage);
     } else {
-      // This is a new message - clear first, then start typing
+      // This is a new message within the same group - clear first, then start typing
       shouldClearFirst = true;
       setVisibleText("");
     }
 
     previousFullMessageRef.current = fullMessage;
+    previousGroupIdRef.current = messageGroupId;
 
     if (startIndex >= fullMessage.length) {
       setVisibleText(fullMessage);
@@ -78,11 +90,11 @@ export default function SpeakerMessage({
     };
 
     if (shouldClearFirst) {
-      // For new messages, clear first then start after a brief delay
+      // For new messages/groups, clear first then start after a brief delay
       setVisibleText("");
       timeoutRef.current = window.setTimeout(() => {
         tick();
-      }, 100); // Brief delay to show the clear state
+      }, 200); // Brief delay to show the clear state
     } else if (startIndex === 0) {
       tick();
     } else {
@@ -96,7 +108,7 @@ export default function SpeakerMessage({
       }
       setIsTyping(false);
     };
-  }, [fullMessage]);
+  }, [fullMessage, messageGroupId]);
 
   useEffect(() => {
     if (iconIntervalRef.current) {

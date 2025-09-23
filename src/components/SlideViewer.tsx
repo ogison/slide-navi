@@ -14,6 +14,7 @@ type SlideViewerProps = {
   iconSrc: string;
   messages: MessageLine[];
   slideTitle?: string;
+  messageGroupId: string;
   onPrev: () => void;
   onNext: () => void;
 };
@@ -28,6 +29,7 @@ export default function SlideViewer({
   iconSrc,
   messages,
   slideTitle,
+  messageGroupId,
   onPrev,
   onNext,
 }: SlideViewerProps) {
@@ -98,6 +100,7 @@ export default function SlideViewer({
         speakerName={speakerName}
         iconSrc={iconSrc}
         messages={messages}
+        messageGroupId={messageGroupId}
       />
     </section>
   );
