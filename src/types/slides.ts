@@ -3,11 +3,10 @@
   pageNumber: number;
 };
 
-export type TransitionType = 'immediate' | 'wait' | 'click';
+export type TransitionType = 'immediate';
 
 export type MessageLine = {
   text: string;
-  speaker?: string;
 };
 
 export type SlideScript = {
@@ -15,7 +14,6 @@ export type SlideScript = {
   messages: MessageLine[];
   transition: {
     type: TransitionType;
-    delay?: number;
   };
 };
 

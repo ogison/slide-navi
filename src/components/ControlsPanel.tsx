@@ -10,8 +10,6 @@ type ControlsPanelProps = {
 
   onIconUpload: (event: ChangeEvent<HTMLInputElement>) => void;
 
-  onSpeakerNameChange: (value: string) => void;
-
   onScriptChange: (value: string) => void;
 
   onPageJump: (pageIndex: number) => void;
@@ -19,8 +17,6 @@ type ControlsPanelProps = {
   onAutoPlayToggle: () => void;
 
   onAutoPlayDelayChange: (seconds: number) => void;
-
-  speakerName: string;
 
   script: string;
 
@@ -36,15 +32,12 @@ type ControlsPanelProps = {
 
   error: string | null;
 
-  waitingForClick?: boolean;
 };
 
 export default function ControlsPanel({
   onPdfUpload,
 
   onIconUpload,
-
-  onSpeakerNameChange,
 
   onScriptChange,
 
@@ -53,8 +46,6 @@ export default function ControlsPanel({
   onAutoPlayToggle,
 
   onAutoPlayDelayChange,
-
-  speakerName,
 
   script,
 
@@ -69,13 +60,7 @@ export default function ControlsPanel({
   totalPages,
 
   error,
-
-  waitingForClick,
 }: ControlsPanelProps) {
-  const handleSpeakerChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onSpeakerNameChange(event.target.value);
-  };
-
   const handleScriptChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     onScriptChange(event.target.value);
   };
@@ -122,19 +107,6 @@ export default function ControlsPanel({
       <div className={styles.section}>
         <h2 className={styles.sectionTitle}>メッセージウィンドウ</h2>
 
-        <label className={styles.fieldLabel} htmlFor="speaker-name">
-          デフォルト話者名
-        </label>
-
-        <input
-          id="speaker-name"
-          type="text"
-          value={speakerName}
-          onChange={handleSpeakerChange}
-          className={styles.textInput}
-          placeholder="デフォルト話者名を入力"
-        />
-
         <label className={styles.fieldLabel} htmlFor="script-text">
           台本
           {hasSlides ? `（全${totalPages}ページ）` : ""}
@@ -152,7 +124,7 @@ export default function ControlsPanel({
 
         <p className={styles.sectionDescription}>
           {hasSlides
-            ? "空白行でスライドを区切ります。# で見出し、@名前: で話者変更、>>数sや>>clickで遷移制御。"
+            ? "空白行でスライドを区切ります。# で見出しを指定。"
             : "PDFをアップロードすると、空白行で区切った台本を入力できます。"}
         </p>
       </div>
@@ -162,7 +134,6 @@ export default function ControlsPanel({
 
         <p className={styles.sectionDescription}>
           台本の各メッセージを順番に表示し、最後のメッセージでページを進めます。
-          {waitingForClick && " 現在クリック待ち中です。"}
           最終ページで自動停止します。
         </p>
 
@@ -198,7 +169,7 @@ export default function ControlsPanel({
         <h2 className={styles.sectionTitle}>アイコン画像</h2>
 
         <p className={styles.sectionDescription}>
-          デフォルトでは doc/image.png を使用しています。
+          話者のアイコン画像を設定できます。
         </p>
 
         <label className={styles.fileDropSmall} htmlFor="icon-upload">
