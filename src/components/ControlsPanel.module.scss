@@ -255,6 +255,141 @@
   line-height: 1.4;
 }
 
+/* 音声設定スタイル */
+.audioControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.audioToggleButton {
+  align-self: flex-start;
+  min-width: 8rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(99, 102, 241, 0.45);
+  background: rgba(99, 102, 241, 0.2);
+  color: #e0e7ff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.audioToggleButton:hover {
+  background: rgba(99, 102, 241, 0.3);
+}
+
+.audioToggleButtonActive {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: rgba(34, 197, 94, 0.45);
+  color: #bbf7d0;
+}
+
+.audioToggleButtonActive:hover {
+  background: rgba(34, 197, 94, 0.3);
+}
+
+.volumeInputGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-left: 0.25rem;
+}
+
+.volumeSlider {
+  width: 100%;
+  max-width: 12rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: rgba(71, 85, 105, 0.4);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  transition: box-shadow 0.2s ease;
+}
+
+.volumeSlider::-webkit-slider-thumb:hover {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: #6366f1;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  transition: box-shadow 0.2s ease;
+}
+
+.volumeSlider::-moz-range-thumb:hover {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+}
+
+.volumeSlider::-webkit-slider-track {
+  background: linear-gradient(
+    to right,
+    rgba(34, 197, 94, 0.6) 0%,
+    rgba(34, 197, 94, 0.6) var(--volume-percent, 30%),
+    rgba(71, 85, 105, 0.4) var(--volume-percent, 30%),
+    rgba(71, 85, 105, 0.4) 100%
+  );
+  height: 0.375rem;
+  border-radius: 9999px;
+}
+
+.volumeSlider::-moz-range-track {
+  background: rgba(71, 85, 105, 0.4);
+  height: 0.375rem;
+  border-radius: 9999px;
+}
+
+/* 音声タイプ選択スタイル */
+.soundTypeGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selectInput {
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(71, 85, 105, 0.7);
+  background: rgba(15, 23, 42, 0.8);
+  color: #f8fafc;
+  font-size: 0.95rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.selectInput:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+}
+
 @media (max-width: 1024px) {
   .container {
     max-width: none;

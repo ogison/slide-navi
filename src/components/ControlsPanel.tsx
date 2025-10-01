@@ -1,6 +1,7 @@
 import { ChangeEvent } from "react";
 
 import type { SlideImage } from "../types/slides";
+import type { AudioSettings } from "@/hooks/useAudioPlayer";
 
 import styles from "./ControlsPanel.module.scss";
 import { SCRIPT_PLACEHOLDER } from "@/constants";
@@ -31,6 +32,11 @@ type ControlsPanelProps = {
   totalPages: number;
 
   error: string | null;
+
+  // 音声設定関連
+  audioSettings: AudioSettings;
+  onAudioToggle: () => void;
+  onVolumeChange: (volume: number) => void;
 };
 
 export default function ControlsPanel({
@@ -59,6 +65,10 @@ export default function ControlsPanel({
   totalPages,
 
   error,
+
+  audioSettings,
+  onAudioToggle,
+  onVolumeChange,
 }: ControlsPanelProps) {
   const handleScriptChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     onScriptChange(event.target.value);
@@ -84,6 +94,12 @@ export default function ControlsPanel({
     const nextValue = Math.max(autoPlayDelaySeconds - 1, 1);
     onAutoPlayDelayChange(nextValue);
   };
+
+  const handleVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const volume = Number(event.target.value) / 100; // 0-100を0-1に変換
+    onVolumeChange(volume);
+  };
+
 
   const isAutoPlayDisabled = totalPages <= 1;
   const hasSlides = totalPages > 0;
@@ -194,6 +210,42 @@ export default function ControlsPanel({
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>音声設定</h2>
+
+        <p className={styles.sectionDescription}>
+          メッセージが流れる際のキャラクター音声の設定です。
+        </p>
+
+        <div className={styles.audioControls}>
+          <button
+            type="button"
+            className={`${styles.audioToggleButton} ${audioSettings.enabled ? styles.audioToggleButtonActive : ""}`}
+            onClick={onAudioToggle}
+          >
+            {audioSettings.enabled ? "🔊 音声ON" : "🔇 音声OFF"}
+          </button>
+
+          {audioSettings.enabled && (
+            <div className={styles.volumeInputGroup}>
+              <label className={styles.fieldLabel} htmlFor="volume-slider">
+                音量: {Math.round(audioSettings.volume * 100)}%
+              </label>
+
+              <input
+                id="volume-slider"
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round(audioSettings.volume * 100)}
+                onChange={handleVolumeChange}
+                className={styles.volumeSlider}
+              />
+            </div>
+          )}
         </div>
       </div>
 

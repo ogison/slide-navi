@@ -7,6 +7,7 @@ import ControlsPanel from "@/components/ControlsPanel";
 import { usePdfUpload } from "@/hooks/usePdfUpload";
 import { useIconUpload } from "@/hooks/useIconUpload";
 import { useSlidePresentation } from "@/hooks/useSlidePresentation";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { SCRIPT_PLACEHOLDER } from "@/constants";
 import styles from "./Home.module.scss";
 
@@ -17,14 +18,16 @@ export default function Home() {
     isLoading,
     error: pdfError,
     handlePdfUpload,
-    totalPages
+    totalPages,
   } = usePdfUpload();
 
+  const { iconSrc, handleIconUpload, error: iconError } = useIconUpload();
+
   const {
-    iconSrc,
-    handleIconUpload,
-    error: iconError
-  } = useIconUpload();
+    settings: audioSettings,
+    toggleAudio,
+    setVolume,
+  } = useAudioPlayer();
 
   const {
     currentIndex,
@@ -74,7 +77,7 @@ export default function Home() {
           currentIndex={currentIndex}
           documentName={documentName}
           isLoading={isLoading}
-          speakerName="Dr. Hikari"
+          speakerName="ウーパー君"
           iconSrc={iconSrc}
           messages={displayedMessages}
           slideTitle={currentTitle}
@@ -83,7 +86,13 @@ export default function Home() {
           onNext={handleNext}
           onMessagePrev={handleMessagePrev}
           onMessageNext={handleMessageNext}
-          currentGroupIndex={slideScripts[currentIndex]?.messageGroups ? slideScripts[currentIndex].messageGroups.findIndex(group => group.id === messageGroupId) : 0}
+          currentGroupIndex={
+            slideScripts[currentIndex]?.messageGroups
+              ? slideScripts[currentIndex].messageGroups.findIndex(
+                  (group) => group.id === messageGroupId
+                )
+              : 0
+          }
           totalGroups={slideScripts[currentIndex]?.messageGroups?.length || 0}
           showClearEffect={showClearEffect}
         />
@@ -101,6 +110,9 @@ export default function Home() {
           autoPlayDelaySeconds={autoPlayDelaySeconds}
           totalPages={totalPages}
           error={error}
+          audioSettings={audioSettings}
+          onAudioToggle={toggleAudio}
+          onVolumeChange={setVolume}
         />
       </main>
     </div>

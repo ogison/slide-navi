@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { MessageLine } from "../types/slides";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import styles from "./SpeakerMessage.module.scss";
 
 const TYPEWRITER_DELAY_MS = 45;
@@ -32,6 +33,9 @@ export default function SpeakerMessage({
   const previousFullMessageRef = useRef<string>("");
   const previousGroupIdRef = useRef<string>("");
   const fullMessage = useMemo(() => messages.map(m => m.text).join("\n"), [messages]);
+
+  // 音声再生機能
+  const { startTypingSound, stopTypingSound, playSingleSound } = useAudioPlayer();
 
   useEffect(() => {
     if (timeoutRef.current) {
@@ -109,6 +113,9 @@ export default function SpeakerMessage({
     let index = startIndex;
     setIsTyping(true);
 
+    // タイプライター効果開始時に音声再生を開始
+    startTypingSound();
+
     const tick = () => {
       index += 1;
       setVisibleText(fullMessage.slice(0, index));
@@ -117,6 +124,9 @@ export default function SpeakerMessage({
       } else {
         timeoutRef.current = null;
         setIsTyping(false);
+        // タイプライター効果完了時に音声停止し、完了音を再生
+        stopTypingSound();
+        playSingleSound();
       }
     };
 
@@ -129,6 +139,9 @@ export default function SpeakerMessage({
         setIsClearing(false);
         setIsTyping(true);
 
+        // クリア効果後のタイプライター開始時に音声再生を開始
+        startTypingSound();
+
         // Start typing after clear effect
         let currentIndex = 0;
         const typingTick = () => {
@@ -139,6 +152,9 @@ export default function SpeakerMessage({
           } else {
             timeoutRef.current = null;
             setIsTyping(false);
+            // タイプライター効果完了時に音声停止し、完了音を再生
+            stopTypingSound();
+            playSingleSound();
           }
         };
         typingTick();
@@ -148,6 +164,10 @@ export default function SpeakerMessage({
       setVisibleText("");
       const delay = isNewGroup ? 300 : 200; // Longer delay for new groups
       timeoutRef.current = window.setTimeout(() => {
+        setIsTyping(true);
+        // タイプライター開始時に音声再生を開始
+        startTypingSound();
+
         // 必ず最新の状態で開始するため、startIndexを0にリセット
         let currentIndex = 0;
         const typingTick = () => {
@@ -158,6 +178,9 @@ export default function SpeakerMessage({
           } else {
             timeoutRef.current = null;
             setIsTyping(false);
+            // タイプライター効果完了時に音声停止し、完了音を再生
+            stopTypingSound();
+            playSingleSound();
           }
         };
         typingTick();
@@ -179,8 +202,10 @@ export default function SpeakerMessage({
       }
       setIsTyping(false);
       setIsClearing(false);
+      // クリーンアップ時に音声停止
+      stopTypingSound();
     };
-  }, [fullMessage, messageGroupId, showClearEffect]);
+  }, [fullMessage, messageGroupId, showClearEffect, startTypingSound, stopTypingSound, playSingleSound]);
 
   useEffect(() => {
     if (iconIntervalRef.current) {
