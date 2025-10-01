@@ -17,6 +17,11 @@ type SlideViewerProps = {
   messageGroupId: string;
   onPrev: () => void;
   onNext: () => void;
+  onMessagePrev: () => void;
+  onMessageNext: () => void;
+  currentGroupIndex: number;
+  totalGroups: number;
+  showClearEffect?: boolean;
 };
 
 export default function SlideViewer({
@@ -32,6 +37,11 @@ export default function SlideViewer({
   messageGroupId,
   onPrev,
   onNext,
+  onMessagePrev,
+  onMessageNext,
+  currentGroupIndex,
+  totalGroups,
+  showClearEffect = false,
 }: SlideViewerProps) {
 
   return (
@@ -55,16 +65,16 @@ export default function SlideViewer({
           <button
             type="button"
             className={styles.navButton}
-            onClick={onPrev}
-            disabled={!totalPages || isLoading}
+            onClick={onMessagePrev}
+            disabled={!totalPages || isLoading || (currentIndex === 0 && currentGroupIndex === 0)}
           >
             前へ
           </button>
           <button
             type="button"
             className={`${styles.navButton} ${styles.nextButton}`}
-            onClick={onNext}
-            disabled={!totalPages || isLoading}
+            onClick={onMessageNext}
+            disabled={!totalPages || isLoading || (currentIndex >= totalPages - 1 && currentGroupIndex >= totalGroups - 1)}
           >
             次へ
           </button>
@@ -101,6 +111,7 @@ export default function SlideViewer({
         iconSrc={iconSrc}
         messages={messages}
         messageGroupId={messageGroupId}
+        showClearEffect={showClearEffect}
       />
     </section>
   );

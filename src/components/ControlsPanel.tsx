@@ -1,6 +1,7 @@
 import { ChangeEvent } from "react";
 
 import type { SlideImage } from "../types/slides";
+import type { AudioSettings } from "@/hooks/useAudioPlayer";
 
 import styles from "./ControlsPanel.module.scss";
 import { SCRIPT_PLACEHOLDER } from "@/constants";
@@ -32,6 +33,10 @@ type ControlsPanelProps = {
 
   error: string | null;
 
+  // 音声設定関連
+  audioSettings: AudioSettings;
+  onAudioToggle: () => void;
+  onVolumeChange: (volume: number) => void;
 };
 
 export default function ControlsPanel({
@@ -60,6 +65,10 @@ export default function ControlsPanel({
   totalPages,
 
   error,
+
+  audioSettings,
+  onAudioToggle,
+  onVolumeChange,
 }: ControlsPanelProps) {
   const handleScriptChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     onScriptChange(event.target.value);
@@ -75,6 +84,22 @@ export default function ControlsPanel({
     const sanitizedValue = Math.max(1, Math.floor(nextValue));
     onAutoPlayDelayChange(sanitizedValue);
   };
+
+  const handleDelayIncrease = () => {
+    const nextValue = Math.min(autoPlayDelaySeconds + 1, 60);
+    onAutoPlayDelayChange(nextValue);
+  };
+
+  const handleDelayDecrease = () => {
+    const nextValue = Math.max(autoPlayDelaySeconds - 1, 1);
+    onAutoPlayDelayChange(nextValue);
+  };
+
+  const handleVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const volume = Number(event.target.value) / 100; // 0-100を0-1に変換
+    onVolumeChange(volume);
+  };
+
 
   const isAutoPlayDisabled = totalPages <= 1;
   const hasSlides = totalPages > 0;
@@ -152,20 +177,80 @@ export default function ControlsPanel({
               メッセージ間隔（秒）
             </label>
 
-            <input
-              id="autoplay-interval"
-              type="number"
-              min={1}
-              value={autoPlayDelaySeconds}
-              onChange={handleDelayChange}
-              className={styles.numberInput}
-              disabled={totalPages === 0}
-            />
+            <div className={styles.numberInputWithArrows}>
+              <button
+                type="button"
+                className={styles.arrowButton}
+                onClick={handleDelayDecrease}
+                disabled={totalPages === 0 || autoPlayDelaySeconds <= 1}
+                aria-label="間隔を1秒減らす"
+              >
+                -
+              </button>
+
+              <input
+                id="autoplay-interval"
+                type="number"
+                min={1}
+                max={60}
+                value={autoPlayDelaySeconds}
+                onChange={handleDelayChange}
+                className={styles.numberInput}
+                disabled={totalPages === 0}
+              />
+
+              <button
+                type="button"
+                className={styles.arrowButton}
+                onClick={handleDelayIncrease}
+                disabled={totalPages === 0 || autoPlayDelaySeconds >= 60}
+                aria-label="間隔を1秒増やす"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className={styles.section}>
+        <h2 className={styles.sectionTitle}>音声設定</h2>
+
+        <p className={styles.sectionDescription}>
+          メッセージが流れる際のキャラクター音声の設定です。
+        </p>
+
+        <div className={styles.audioControls}>
+          <button
+            type="button"
+            className={`${styles.audioToggleButton} ${audioSettings.enabled ? styles.audioToggleButtonActive : ""}`}
+            onClick={onAudioToggle}
+          >
+            {audioSettings.enabled ? "🔊 音声ON" : "🔇 音声OFF"}
+          </button>
+
+          {audioSettings.enabled && (
+            <div className={styles.volumeInputGroup}>
+              <label className={styles.fieldLabel} htmlFor="volume-slider">
+                音量: {Math.round(audioSettings.volume * 100)}%
+              </label>
+
+              <input
+                id="volume-slider"
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round(audioSettings.volume * 100)}
+                onChange={handleVolumeChange}
+                className={styles.volumeSlider}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 将来的に実装 */}
+      {/* <div className={styles.section}>
         <h2 className={styles.sectionTitle}>アイコン画像</h2>
 
         <p className={styles.sectionDescription}>
@@ -185,7 +270,7 @@ export default function ControlsPanel({
             onChange={onIconUpload}
           />
         </label>
-      </div>
+      </div> */}
 
       {slides.length > 0 && (
         <div className={styles.section}>
