@@ -16,7 +16,6 @@ export type MessageGroup = {
 
 export type SlideScript = {
   title?: string;
-  messages: MessageLine[];
   messageGroups: MessageGroup[];
   transition: {
     type: TransitionType;

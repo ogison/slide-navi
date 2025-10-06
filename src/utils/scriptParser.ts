@@ -68,7 +68,6 @@ export const parseScript = (script: string): SlideScript[] => {
   return sections.map((slideText, slideIndex) => {
     const lines = slideText.split("\n");
     let title: string | undefined;
-    const messages: MessageLine[] = [];
     const messageGroups: MessageGroup[] = [];
     const transition = {
       type: "immediate" as TransitionType,
@@ -85,12 +84,6 @@ export const parseScript = (script: string): SlideScript[] => {
           text: part,
         }));
 
-        // Add to messages array for backward compatibility
-        groupMessages.forEach((msg) => {
-          messages.push(msg);
-        });
-
-        // Add to messageGroups for group-based display
         messageGroups.push({
           id: `slide-${slideIndex}-group-${groupIndex}`,
           messages: groupMessages,
@@ -123,7 +116,7 @@ export const parseScript = (script: string): SlideScript[] => {
     // Add remaining group if any
     finishCurrentGroup();
 
-    return { title, messages, messageGroups, transition };
+    return { title, messageGroups, transition };
   });
 };
 
@@ -148,25 +141,10 @@ export const createSlideScripts = (
     } else {
       // If no more scripts available, use empty script
       result.push({
-        messages: [],
         messageGroups: [],
         transition: { type: "immediate" },
       });
     }
-  }
-
-  // Debug logging in development
-  if (process.env.NODE_ENV === "development") {
-    console.log("Script parsing debug:", {
-      totalScripts: scripts.length,
-      totalPages,
-      scriptTitles: scripts.map((s) => s.title).filter(Boolean),
-      mapping: result.map((script, index) => ({
-        slideIndex: index,
-        title: script.title || "(no title)",
-        hasMessages: script.messages.length > 0,
-      })),
-    });
   }
 
   return result;
