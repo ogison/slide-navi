@@ -2,10 +2,9 @@
 
 import { useEffect } from "react";
 import HeaderSection from "../components/HeaderSection";
-import SlideViewer from "../components/SlideViewer";
-import ControlsPanel from "@/components/ControlsPanel";
+import SlideViewer from "./SlideViewer";
+import ControlsPanel from "@/components/ControlPanel";
 import { usePdfUpload } from "@/hooks/usePdfUpload";
-import { useIconUpload } from "@/hooks/useIconUpload";
 import { useSlidePresentation } from "@/hooks/useSlidePresentation";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { SCRIPT_PLACEHOLDER } from "@/constants";
@@ -21,13 +20,7 @@ export default function Home() {
     totalPages,
   } = usePdfUpload();
 
-  const { iconSrc, handleIconUpload, error: iconError } = useIconUpload();
-
-  const {
-    settings: audioSettings,
-    toggleAudio,
-    setVolume,
-  } = useAudioPlayer();
+  const { settings: audioSettings, toggleAudio, setVolume } = useAudioPlayer();
 
   const {
     currentIndex,
@@ -38,8 +31,6 @@ export default function Home() {
     currentTitle,
     displayedMessages,
     messageGroupId,
-    handlePrev,
-    handleNext,
     handleMessagePrev,
     handleMessageNext,
     jumpTo,
@@ -49,6 +40,7 @@ export default function Home() {
     resetSlideState,
     slideScripts,
     showClearEffect,
+    handleTypingComplete,
   } = useSlidePresentation(slides);
 
   // Initialize script placeholder when slides are loaded for the first time
@@ -65,7 +57,7 @@ export default function Home() {
     }
   }, [slides.length, resetSlideState]);
 
-  const error = pdfError || iconError;
+  const error = pdfError;
 
   return (
     <div className={styles.page}>
@@ -78,12 +70,9 @@ export default function Home() {
           documentName={documentName}
           isLoading={isLoading}
           speakerName="ウーパー君"
-          iconSrc={iconSrc}
           messages={displayedMessages}
           slideTitle={currentTitle}
           messageGroupId={messageGroupId}
-          onPrev={handlePrev}
-          onNext={handleNext}
           onMessagePrev={handleMessagePrev}
           onMessageNext={handleMessageNext}
           currentGroupIndex={
@@ -95,10 +84,12 @@ export default function Home() {
           }
           totalGroups={slideScripts[currentIndex]?.messageGroups?.length || 0}
           showClearEffect={showClearEffect}
+          onTypingComplete={handleTypingComplete}
+          isAutoPlaying={isAutoPlaying}
+          onAutoPlayToggle={handleAutoPlayToggle}
         />
         <ControlsPanel
           onPdfUpload={handlePdfUpload}
-          onIconUpload={handleIconUpload}
           onScriptChange={handleScriptChange}
           onPageJump={jumpTo}
           onAutoPlayToggle={handleAutoPlayToggle}

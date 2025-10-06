@@ -18,15 +18,22 @@ const STORAGE_KEY = "slide-navi-audio-settings";
  * 音声再生機能を管理するカスタムフック
  */
 export const useAudioPlayer = () => {
-  const [settings, setSettings] = useState<AudioSettings>(() => {
-    // ローカルストレージから設定を読み込み
-    if (typeof window === "undefined") {
-      return {
-        enabled: true,
-        volume: 0.3,
-        soundType: "typewriter" as SoundType,
-      };
-    }
+  // Hydrationエラー回避のため、初期値は常に固定のデフォルト値を使用
+  const [settings, setSettings] = useState<AudioSettings>({
+    enabled: true,
+    volume: 0.3,
+    soundType: "typewriter" as SoundType,
+  });
+
+  const isTypingRef = useRef<boolean>(false);
+  const soundIntervalRef = useRef<number | null>(null);
+  const maxSoundTimerRef = useRef<number | null>(null);
+  const isInitializedRef = useRef<boolean>(false);
+
+  // マウント後にローカルストレージから設定を読み込み
+  useEffect(() => {
+    if (isInitializedRef.current) return;
+    isInitializedRef.current = true;
 
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -35,43 +42,34 @@ export const useAudioPlayer = () => {
 
         // 新形式からの移行処理（複雑な設定から簡単な設定へ）
         if (parsed.typewriterEnabled !== undefined) {
-          return {
+          setSettings({
             enabled: parsed.typewriterEnabled,
             volume: Math.max(0, Math.min(1, parsed.typewriterVolume ?? 0.3)),
-            soundType: "typewriter" as SoundType, // デフォルトはタイプライター音
-          };
+            soundType: "typewriter" as SoundType,
+          });
+          return;
         }
 
         // 既存の設定形式
-        return {
+        setSettings({
           enabled: parsed.enabled ?? true,
           volume: Math.max(0, Math.min(1, parsed.volume ?? 0.3)),
-          soundType: "typewriter" as SoundType, // 常にtypewriter（message-type.mp3）を使用
-        };
+          soundType: "typewriter" as SoundType,
+        });
       }
     } catch (error) {
       console.warn("Failed to load audio settings:", error);
     }
-
-    return {
-      enabled: true,
-      volume: 0.3,
-      soundType: "typewriter" as SoundType,
-    };
-  });
-
-  const isTypingRef = useRef<boolean>(false);
-  const soundIntervalRef = useRef<number | null>(null);
-  const maxSoundTimerRef = useRef<number | null>(null);
+  }, []);
 
   // 設定をローカルストレージに保存
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-      } catch (error) {
-        console.warn("Failed to save audio settings:", error);
-      }
+    if (!isInitializedRef.current) return; // 初回読み込み時はスキップ
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    } catch (error) {
+      console.warn("Failed to save audio settings:", error);
     }
   }, [settings]);
 
