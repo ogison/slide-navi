@@ -3,6 +3,7 @@ import styles from "./SlideViewer.module.scss";
 import SlideViewerHeader from "./SlideViewerHeader";
 import SlideDisplay from "./SlideDisplay";
 import SpeakerMessage from "./SpeakerMessage";
+import PageJumpSection from "./PageJumpSection";
 
 type SlideViewerProps = {
   currentSlide?: SlideImage;
@@ -22,6 +23,8 @@ type SlideViewerProps = {
   onTypingComplete?: () => void;
   isAutoPlaying: boolean;
   onAutoPlayToggle: () => void;
+  slides: SlideImage[];
+  onPageJump: (pageIndex: number) => void;
 };
 
 export default function SlideViewer({
@@ -42,6 +45,8 @@ export default function SlideViewer({
   onTypingComplete,
   isAutoPlaying,
   onAutoPlayToggle,
+  slides,
+  onPageJump,
 }: SlideViewerProps) {
   return (
     <section className={styles.container}>
@@ -67,6 +72,12 @@ export default function SlideViewer({
         messageGroupId={messageGroupId}
         showClearEffect={showClearEffect}
         onTypingComplete={onTypingComplete}
+      />
+
+      <PageJumpSection
+        slides={slides}
+        currentIndex={currentIndex}
+        onPageJump={onPageJump}
       />
     </section>
   );

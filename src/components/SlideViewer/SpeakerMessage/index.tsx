@@ -26,8 +26,7 @@ export default function SpeakerMessage({
   onTypingComplete,
 }: SpeakerMessageProps) {
   // Audio player integration
-  const { startTypingSound, stopTypingSound, playSingleSound } =
-    useAudioPlayer();
+  const { startTypingSound, stopTypingSound } = useAudioPlayer();
 
   // Typewriter effect logic
   const { isTyping, isClearing, animatedLines } = useTypewriterEffect({
@@ -37,7 +36,6 @@ export default function SpeakerMessage({
     onTypingComplete,
     startTypingSound,
     stopTypingSound,
-    playSingleSound,
   });
 
   // Speaker icon animation
@@ -51,6 +49,7 @@ export default function SpeakerMessage({
     ? animatedLines
     : messages.map((m) => m.text);
 
+  console.log("Rendering SpeakerMessage with lines:", linesToRender);
   return (
     <div className={styles.messagePanel}>
       <div className={styles.messageCard}>

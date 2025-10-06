@@ -1,5 +1,5 @@
 import type { SlideImage } from "@/types/slides";
-import styles from "./ControlsPanel.module.scss";
+import styles from "./PageJumpSection.module.scss";
 
 type PageJumpSectionProps = {
   slides: SlideImage[];
