@@ -1,4 +1,5 @@
 ﻿import type { SlideImage, MessageLine } from "../../types/slides";
+import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import styles from "./SlideViewer.module.scss";
 import SlideViewerHeader from "./SlideViewerHeader";
 import SlideDisplay from "./SlideDisplay";
@@ -25,6 +26,7 @@ type SlideViewerProps = {
   onAutoPlayToggle: () => void;
   slides: SlideImage[];
   onPageJump: (pageIndex: number) => void;
+  audioMode: AudioMode;
 };
 
 export default function SlideViewer({
@@ -47,6 +49,7 @@ export default function SlideViewer({
   onAutoPlayToggle,
   slides,
   onPageJump,
+  audioMode,
 }: SlideViewerProps) {
   return (
     <section className={styles.container}>
@@ -72,6 +75,8 @@ export default function SlideViewer({
         messageGroupId={messageGroupId}
         showClearEffect={showClearEffect}
         onTypingComplete={onTypingComplete}
+        audioMode={audioMode}
+        isAutoPlaying={isAutoPlaying}
       />
 
       <PageJumpSection

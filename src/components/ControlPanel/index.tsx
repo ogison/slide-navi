@@ -1,6 +1,8 @@
 import { ChangeEvent } from "react";
 
 import type { AudioSettings } from "@/hooks/useAudioPlayer";
+import type { SpeechSynthesisSettings } from "@/hooks/useSpeechSynthesis";
+import type { AudioMode } from "./AudioSettingsSection";
 
 import styles from "./ControlsPanel.module.scss";
 import PdfUploadSection from "./PdfUploadSection";
@@ -18,9 +20,16 @@ type ControlsPanelProps = {
   autoPlayDelaySeconds: number;
   totalPages: number;
   error: string | null;
+  audioMode: AudioMode;
+  onAudioModeChange: (mode: AudioMode) => void;
   audioSettings: AudioSettings;
-  onAudioToggle: () => void;
   onVolumeChange: (volume: number) => void;
+  speechSettings: SpeechSynthesisSettings;
+  onSpeechVolumeChange: (volume: number) => void;
+  onSpeechRateChange: (rate: number) => void;
+  onSpeechVoiceChange: (voiceName: string) => void;
+  availableVoices: SpeechSynthesisVoice[];
+  isSpeechSupported: boolean;
 };
 
 export default function ControlsPanel({
@@ -33,9 +42,16 @@ export default function ControlsPanel({
   autoPlayDelaySeconds,
   totalPages,
   error,
+  audioMode,
+  onAudioModeChange,
   audioSettings,
-  onAudioToggle,
   onVolumeChange,
+  speechSettings,
+  onSpeechVolumeChange,
+  onSpeechRateChange,
+  onSpeechVoiceChange,
+  availableVoices,
+  isSpeechSupported,
 }: ControlsPanelProps) {
   const hasSlides = totalPages > 0;
 
@@ -57,9 +73,16 @@ export default function ControlsPanel({
       />
 
       <AudioSettingsSection
+        audioMode={audioMode}
+        onAudioModeChange={onAudioModeChange}
         audioSettings={audioSettings}
-        onAudioToggle={onAudioToggle}
         onVolumeChange={onVolumeChange}
+        speechSettings={speechSettings}
+        onSpeechVolumeChange={onSpeechVolumeChange}
+        onSpeechRateChange={onSpeechRateChange}
+        onSpeechVoiceChange={onSpeechVoiceChange}
+        availableVoices={availableVoices}
+        isSpeechSupported={isSpeechSupported}
       />
 
       {error && <div className={styles.error}>{error}</div>}
