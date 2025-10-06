@@ -14,6 +14,7 @@ interface UseTypewriterEffectProps {
   onTypingComplete?: () => void;
   startTypingSound: () => void;
   stopTypingSound: () => void;
+  disabled?: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ export function useTypewriterEffect({
   onTypingComplete,
   startTypingSound,
   stopTypingSound,
+  disabled = false,
 }: UseTypewriterEffectProps) {
   const [visibleText, setVisibleText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -56,6 +58,18 @@ export function useTypewriterEffect({
     const previousFullMessage = previousFullMessageRef.current;
     const previousGroupId = previousGroupIdRef.current;
     const isNewGroup = previousGroupId !== messageGroupId;
+
+    // disabledの場合、タイプライター効果をスキップして即座に全文表示
+    if (disabled) {
+      setVisibleText(fullMessage);
+      setIsTyping(false);
+      setIsClearing(false);
+      previousFullMessageRef.current = fullMessage;
+      previousGroupIdRef.current = messageGroupId;
+      // 即座に完了を通知
+      onTypingComplete?.();
+      return;
+    }
 
     // 空メッセージの処理
     if (!fullMessage) {
@@ -214,6 +228,7 @@ export function useTypewriterEffect({
     startTypingSound,
     stopTypingSound,
     onTypingComplete,
+    disabled,
   ]);
 
   // 表示用のアニメーション行を計算

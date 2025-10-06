@@ -7,6 +7,7 @@ const SPEAKER_ICON_ALTERNATE = "/speaker_2.png";
 interface UseSpeakerIconAnimationProps {
   isTyping: boolean;
   isClearing: boolean;
+  isSpeaking: boolean;
 }
 
 /**
@@ -16,6 +17,7 @@ interface UseSpeakerIconAnimationProps {
 export function useSpeakerIconAnimation({
   isTyping,
   isClearing,
+  isSpeaking,
 }: UseSpeakerIconAnimationProps) {
   const [currentIconIndex, setCurrentIconIndex] = useState(0);
   const iconIntervalRef = useRef<number | null>(null);
@@ -26,7 +28,7 @@ export function useSpeakerIconAnimation({
       iconIntervalRef.current = null;
     }
 
-    if (isTyping || isClearing) {
+    if (isTyping || isClearing || isSpeaking) {
       // Start icon animation
       iconIntervalRef.current = window.setInterval(() => {
         setCurrentIconIndex((prev) => (prev === 0 ? 1 : 0));
@@ -42,10 +44,10 @@ export function useSpeakerIconAnimation({
         iconIntervalRef.current = null;
       }
     };
-  }, [isTyping, isClearing]);
+  }, [isTyping, isClearing, isSpeaking]);
 
   const iconSrc =
-    isTyping || isClearing
+    isTyping || isClearing || isSpeaking
       ? currentIconIndex === 0
         ? SPEAKER_ICON_DEFAULT
         : SPEAKER_ICON_ALTERNATE

@@ -9,7 +9,7 @@ export const TYPEWRITER_DELAY_MS = 45;
 export const AUDIO_PLAY_INTERVAL_MS = 90;
 
 /** Interval for speaker icon animation during typing (milliseconds) */
-export const ICON_ANIMATION_INTERVAL_MS = 250;
+export const ICON_ANIMATION_INTERVAL_MS = 150;
 
 /** Duration of the clear effect animation (milliseconds) */
 export const CLEAR_EFFECT_DURATION_MS = 400;
