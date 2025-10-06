@@ -14,12 +14,11 @@ interface UseTypewriterEffectProps {
   onTypingComplete?: () => void;
   startTypingSound: () => void;
   stopTypingSound: () => void;
-  playSingleSound: () => void;
 }
 
 /**
- * Custom hook to manage typewriter effect for displaying messages
- * Handles character-by-character animation with clear effects and audio integration
+ * メッセージ表示のためのタイプライター効果を管理するカスタムフック
+ * クリアエフェクトと音声統合を伴う文字単位のアニメーションを処理
  */
 export function useTypewriterEffect({
   messages,
@@ -28,7 +27,6 @@ export function useTypewriterEffect({
   onTypingComplete,
   startTypingSound,
   stopTypingSound,
-  playSingleSound,
 }: UseTypewriterEffectProps) {
   const [visibleText, setVisibleText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -45,7 +43,7 @@ export function useTypewriterEffect({
   );
 
   useEffect(() => {
-    // Clear any pending timeouts
+    // 保留中のタイムアウトをクリア
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
@@ -59,7 +57,7 @@ export function useTypewriterEffect({
     const previousGroupId = previousGroupIdRef.current;
     const isNewGroup = previousGroupId !== messageGroupId;
 
-    // Handle empty message
+    // 空メッセージの処理
     if (!fullMessage) {
       setVisibleText("");
       setIsClearing(false);
@@ -74,9 +72,9 @@ export function useTypewriterEffect({
     let shouldClearFirst = false;
     let shouldShowClearEffect = false;
 
-    // Determine typing behavior based on context
+    // コンテキストに基づいてタイピング動作を決定
     if (isNewGroup) {
-      // New group - check if we need clear effect
+      // 新しいグループ - クリアエフェクトが必要かチェック
       if (showClearEffect && previousFullMessage) {
         shouldShowClearEffect = true;
         shouldClearFirst = true;
@@ -89,11 +87,11 @@ export function useTypewriterEffect({
       previousFullMessage &&
       fullMessage.startsWith(previousFullMessage)
     ) {
-      // Continuation of previous message in same group
+      // 同じグループ内の前のメッセージの続き
       startIndex = previousFullMessage.length;
       setVisibleText(previousFullMessage);
     } else {
-      // New message within same group - clear first, then start typing
+      // 同じグループ内の新しいメッセージ - まずクリアしてからタイピング開始
       if (showClearEffect && previousFullMessage) {
         shouldShowClearEffect = true;
       }
@@ -104,7 +102,7 @@ export function useTypewriterEffect({
     previousFullMessageRef.current = fullMessage;
     previousGroupIdRef.current = messageGroupId;
 
-    // Check if typing is already complete
+    // タイピングがすでに完了しているかチェック
     if (startIndex >= fullMessage.length) {
       setVisibleText(fullMessage);
       setIsTyping(false);
@@ -115,10 +113,10 @@ export function useTypewriterEffect({
     let index = startIndex;
     setIsTyping(true);
 
-    // Start typing sound
+    // タイピング音を開始
     startTypingSound();
 
-    // Standard typing tick function
+    // 標準タイピングティック関数
     const tick = () => {
       index += 1;
       setVisibleText(fullMessage.slice(0, index));
@@ -128,14 +126,13 @@ export function useTypewriterEffect({
         timeoutRef.current = null;
         setIsTyping(false);
         stopTypingSound();
-        playSingleSound();
         onTypingComplete?.();
       }
     };
 
-    // Handle different typing scenarios
+    // 異なるタイピングシナリオを処理
     if (shouldShowClearEffect) {
-      // Show clear effect with animation
+      // アニメーション付きクリアエフェクトを表示
       setIsClearing(true);
       setVisibleText("");
 
@@ -144,7 +141,7 @@ export function useTypewriterEffect({
         setIsTyping(true);
         startTypingSound();
 
-        // Start typing after clear effect
+        // クリアエフェクト後にタイピング開始
         let currentIndex = 0;
         const typingTick = () => {
           currentIndex += 1;
@@ -158,21 +155,20 @@ export function useTypewriterEffect({
             timeoutRef.current = null;
             setIsTyping(false);
             stopTypingSound();
-            playSingleSound();
             onTypingComplete?.();
           }
         };
         typingTick();
       }, CLEAR_EFFECT_DURATION_MS);
     } else if (shouldClearFirst) {
-      // For new messages/groups, clear first then start after a brief delay
+      // 新しいメッセージ/グループの場合、まずクリアして短い遅延後に開始
       setVisibleText("");
       const delay = isNewGroup ? NEW_GROUP_DELAY_MS : SAME_GROUP_DELAY_MS;
       timeoutRef.current = window.setTimeout(() => {
         setIsTyping(true);
         startTypingSound();
 
-        // Start from beginning
+        // 最初から開始
         let currentIndex = 0;
         const typingTick = () => {
           currentIndex += 1;
@@ -186,7 +182,6 @@ export function useTypewriterEffect({
             timeoutRef.current = null;
             setIsTyping(false);
             stopTypingSound();
-            playSingleSound();
             onTypingComplete?.();
           }
         };
@@ -198,7 +193,7 @@ export function useTypewriterEffect({
       timeoutRef.current = window.setTimeout(tick, TYPEWRITER_DELAY_MS);
     }
 
-    // Cleanup function
+    // クリーンアップ関数
     return () => {
       if (timeoutRef.current) {
         window.clearTimeout(timeoutRef.current);
@@ -218,11 +213,10 @@ export function useTypewriterEffect({
     showClearEffect,
     startTypingSound,
     stopTypingSound,
-    playSingleSound,
     onTypingComplete,
   ]);
 
-  // Calculate animated lines for display
+  // 表示用のアニメーション行を計算
   const animatedLines = useMemo(() => {
     if (!fullMessage) {
       return [];

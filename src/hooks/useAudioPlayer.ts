@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   playTypewriterSound,
+  stopAllTypewriterSounds,
   cleanupAudioContext,
 } from "@/utils/audioGenerator";
+import { AUDIO_PLAY_INTERVAL_MS } from "@/constants/typewriter";
 
 export type SoundType = "typewriter";
 
@@ -27,7 +29,6 @@ export const useAudioPlayer = () => {
 
   const isTypingRef = useRef<boolean>(false);
   const soundIntervalRef = useRef<number | null>(null);
-  const maxSoundTimerRef = useRef<number | null>(null);
   const isInitializedRef = useRef<boolean>(false);
 
   // マウント後にローカルストレージから設定を読み込み
@@ -80,10 +81,6 @@ export const useAudioPlayer = () => {
         window.clearInterval(soundIntervalRef.current);
         soundIntervalRef.current = null;
       }
-      if (maxSoundTimerRef.current) {
-        window.clearTimeout(maxSoundTimerRef.current);
-        maxSoundTimerRef.current = null;
-      }
       cleanupAudioContext();
     };
   }, []);
@@ -109,21 +106,12 @@ export const useAudioPlayer = () => {
     // 最初の音を即座に再生
     playSound();
 
-    // 300ms間隔で音を再生
+    // タイピング速度に同期した間隔で音を再生
     soundIntervalRef.current = window.setInterval(() => {
       if (isTypingRef.current) {
         playSound();
       }
-    }, 300);
-
-    // 2秒後に音声を自動停止（長いメッセージ対策）
-    maxSoundTimerRef.current = window.setTimeout(() => {
-      if (soundIntervalRef.current) {
-        window.clearInterval(soundIntervalRef.current);
-        soundIntervalRef.current = null;
-      }
-      isTypingRef.current = false;
-    }, 2000);
+    }, AUDIO_PLAY_INTERVAL_MS);
   }, [settings.enabled, playSound]);
 
   /**
@@ -134,11 +122,10 @@ export const useAudioPlayer = () => {
       window.clearInterval(soundIntervalRef.current);
       soundIntervalRef.current = null;
     }
-    if (maxSoundTimerRef.current) {
-      window.clearTimeout(maxSoundTimerRef.current);
-      maxSoundTimerRef.current = null;
-    }
     isTypingRef.current = false;
+
+    // すべての再生中の音声を即座に停止
+    stopAllTypewriterSounds();
   }, []);
 
   /**
@@ -163,20 +150,10 @@ export const useAudioPlayer = () => {
     setSettings((prev) => ({ ...prev, soundType }));
   }, []);
 
-  /**
-   * 単発音の再生（完了音など）
-   */
-  const playSingleSound = useCallback(() => {
-    if (settings.enabled) {
-      playSound();
-    }
-  }, [settings.enabled, playSound]);
-
   return {
     settings,
     startTypingSound,
     stopTypingSound,
-    playSingleSound,
     toggleAudio,
     setVolume,
     setSoundType,

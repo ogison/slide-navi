@@ -87,16 +87,15 @@ export default function Home() {
           onTypingComplete={handleTypingComplete}
           isAutoPlaying={isAutoPlaying}
           onAutoPlayToggle={handleAutoPlayToggle}
+          slides={slides}
+          onPageJump={jumpTo}
         />
         <ControlsPanel
           onPdfUpload={handlePdfUpload}
           onScriptChange={handleScriptChange}
-          onPageJump={jumpTo}
           onAutoPlayToggle={handleAutoPlayToggle}
           onAutoPlayDelayChange={handleAutoPlayDelayChange}
           script={scriptInput}
-          slides={slides}
-          currentIndex={currentIndex}
           isAutoPlaying={isAutoPlaying}
           autoPlayDelaySeconds={autoPlayDelaySeconds}
           totalPages={totalPages}
