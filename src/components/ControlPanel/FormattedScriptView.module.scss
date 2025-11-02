@@ -1,0 +1,222 @@
+.container {
+  padding: var(--spacing-medium);
+  background-color: var(--color-background-secondary);
+  border-radius: var(--border-radius);
+  /* increase vertical available space: use viewport-relative height */
+  max-height: 65vh;
+  /* keep an absolute cap for very small screens */
+  max-height: min(65vh, 900px);
+  overflow-y: auto;
+  font-size: 0.95rem;
+  /* Improve readability */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-medium);
+}
+
+.slideContainer {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(0, 0, 0, 0.02)
+  );
+  border: 1px solid var(--border-color);
+  margin-top: 2px;
+  padding: calc(var(--spacing-medium) - 2px);
+  border-radius: calc(var(--border-radius) - 4px);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.35);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 26px rgba(2, 6, 23, 0.45);
+  }
+}
+
+.slideTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  /* increase vertical spacing below title for clarity */
+  margin: 10px 2px var(--spacing-medium) 0;
+  /* slightly larger gap under the title border */
+  padding-bottom: calc(var(--spacing-x-small) + 2px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.groupList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0 var(--spacing-medium);
+}
+
+.groupItem {
+  margin-bottom: var(--spacing-medium);
+  display: block;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.01),
+    rgba(0, 0, 0, 0.01)
+  );
+  padding: var(--spacing-small);
+  border-radius: calc(var(--border-radius) / 2);
+  border: 1px solid rgba(148, 163, 184, 0.04);
+}
+
+.messageList {
+  list-style: none;
+  padding: 0;
+  margin: var(--spacing-small) 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.messageItem {
+  padding: 0;
+  color: var(--color-text-secondary);
+}
+
+.noScripts {
+  color: var(--color-text-tertiary);
+}
+
+/* New styles for clearer group and message presentation */
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  background: rgba(99, 102, 241, 0.12);
+  color: #e0e7ff;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+.groupLabel {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+}
+
+.messageBubble {
+  background: rgba(148, 163, 184, 0.05);
+  color: var(--color-text-secondary);
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.06);
+  box-shadow: 0 2px 6px rgba(2, 6, 23, 0.18);
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.metaSmall {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  margin-left: auto;
+}
+
+/* Editing controls */
+.addButton {
+  background: transparent;
+  border: 1px dashed rgba(148, 163, 184, 0.12);
+  color: var(--color-text-secondary);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 0.5rem;
+
+  &:hover {
+    background: rgba(148, 163, 184, 0.02);
+    border-color: rgba(148, 163, 184, 0.18);
+    color: var(--color-text-primary);
+  }
+}
+
+.editButton {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  color: var(--color-text-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.editButtonSmall {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.06);
+  color: var(--color-text-secondary);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.325rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.editControls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.editTextarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 72px;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-primary);
+
+  &::placeholder {
+    color: var(--color-text-tertiary);
+  }
+}
+
+.titleEditInput {
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--color-text-primary);
+}
+
+.editButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveButton {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  color: #bbf7d0;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+
+.cancelButton {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.06);
+  color: var(--color-text-secondary);
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+}

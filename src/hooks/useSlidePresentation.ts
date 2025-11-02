@@ -13,8 +13,12 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
 
   // Script management
-  const { scriptInput, slideScripts, handleScriptChange } =
-    useScriptManager(totalPages);
+  const {
+    scriptInput,
+    slideScripts,
+    parseError: scriptError,
+    handleScriptChange,
+  } = useScriptManager(totalPages);
 
   // Typing state
   const {
@@ -178,6 +182,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     displayedMessages,
     totalPages,
     slideScripts,
+    scriptError,
     showClearEffect,
 
     // Message group data for SlideViewer
