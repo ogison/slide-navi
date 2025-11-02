@@ -1,37 +1,30 @@
-# next-js-template
+# Slide Navi
 
-This repository packages my go-to Next.js setup so new projects can start from a consistent, production-friendly baseline.
+Slide Navi is a Next.js application for rehearsing slide presentations. Upload a PDF deck, write a companion script, and rehearse with synchronized slide playback, typewriter-style audio cues, or speech synthesis.
 
-## What\'s inside
+## Summary
+- Upload a PDF to preview individual slides with navigation controls.
+- Draft and manage narration scripts with automatic grouping by slide.
+- Rehearse with auto-play, timing controls, and either typewriter sound effects or speech synthesis.
+- Store audio preferences in local storage so rehearsal settings persist across sessions.
 
-- Next.js 15 App Router with React 19 and TypeScript already wired up.
-- Tailwind CSS 4 configured via the new @tailwindcss/postcss plugin and project-wide globals.css.
-- Opinionated linting/formatting with ESLint, Prettier, and matching configs.
-- Husky + lint-staged to keep commits clean by running
-  pm run format and
-  pm run lint on staged files.
-- Turbopack-powered dev and uild scripts for faster feedback loops.
-
-## Usage
-
-1. Install dependencies:
-   pm install.
-2. Start developing:
-   pm run dev.
-3. Build for production:
-   pm run build.
-4. Preview production build locally:
-   pm run start (after building).
+## Getting started
+1. Install dependencies: `npm install`
+2. Start the development server: `npm run dev`
+3. Build for production: `npm run build`
+4. Preview the production build locally: `npm run start`
 
 ## Project layout
+- `src/app` – App Router entry point and global styles.
+- `src/components` – UI building blocks such as the slide viewer, control panel, and header.
+- `src/hooks` – Custom hooks for PDF handling, slide playback, audio controls, and speech synthesis.
+- `src/utils` – Helper utilities including audio generation helpers.
+- Root-level config files (`tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`, etc.) configure the toolchain.
 
-- src/app contains the default App Router entry point (layout.tsx, page.tsx) and global styles.
-- public holds static assets like favicons and logos.
-- Root-level config files ( sconfig.json, eslint.config.mjs, postcss.config.mjs, etc.) are preconfigured for the stack above.
+## Key technologies
+- Next.js 15 with React 19 and the App Router.
+- Tailwind CSS 4 for utility-first styling.
+- ESLint, Prettier, Husky, and lint-staged for consistent formatting and linting.
 
-## Customization tips
-
-- Update src/app/layout.tsx metadata and fonts to match the new project.
-- Replace the sample landing page in src/app/page.tsx with your own UI.
-- Adjust linting or formatting rules in eslint.config.mjs and .prettierrc (if added) to suit team preferences.
-- Add or tweak Husky hooks under .husky/ if you need additional pre-commit checks.
+## Additional documentation
+A Japanese version of this README is available at [README.ja.md](README.ja.md).
