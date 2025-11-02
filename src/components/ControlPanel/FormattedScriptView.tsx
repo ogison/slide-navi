@@ -15,7 +15,7 @@ const FormattedScriptView: React.FC<FormattedScriptViewProps> = ({
   onChange,
 }) => {
   const [localScripts, setLocalScripts] = useState<SlideScript[]>(
-    slideScripts ?? []
+    slideScripts ?? [],
   );
   const [editing, setEditing] = useState<
     Record<string, { type: "title" | "message"; value: string }>
@@ -41,7 +41,7 @@ const FormattedScriptView: React.FC<FormattedScriptViewProps> = ({
   const handleStartEditMessage = (
     slideIndex: number,
     groupIndex: number,
-    messageIndex: number
+    messageIndex: number,
   ) => {
     const key = `m-${slideIndex}-${groupIndex}-${messageIndex}`;
     setEditing((s) => ({
@@ -218,7 +218,7 @@ const FormattedScriptView: React.FC<FormattedScriptViewProps> = ({
                               onChange={(e) =>
                                 handleChangeEditingValue(
                                   `m-${index}-${gIndex}-${mIndex}`,
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               rows={3}
@@ -228,7 +228,7 @@ const FormattedScriptView: React.FC<FormattedScriptViewProps> = ({
                                 className={styles.saveButton}
                                 onClick={() =>
                                   handleSaveEdit(
-                                    `m-${index}-${gIndex}-${mIndex}`
+                                    `m-${index}-${gIndex}-${mIndex}`,
                                   )
                                 }
                               >
@@ -238,7 +238,7 @@ const FormattedScriptView: React.FC<FormattedScriptViewProps> = ({
                                 className={styles.cancelButton}
                                 onClick={() =>
                                   handleCancelEdit(
-                                    `m-${index}-${gIndex}-${mIndex}`
+                                    `m-${index}-${gIndex}-${mIndex}`,
                                   )
                                 }
                               >

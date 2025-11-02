@@ -2,10 +2,13 @@ import type {
   MessageGroup,
   MessageLine,
   SlideScript,
+  Speaker,
   TransitionType,
 } from "@/types/slides";
 
 const DEFAULT_TRANSITION: TransitionType = "immediate";
+const DEFAULT_SPEAKER: Speaker = "axolotl";
+const SUPPORTED_SPEAKERS: ReadonlyArray<Speaker> = ["axolotl", "yagi"];
 const SUPPORTED_TRANSITIONS: ReadonlyArray<TransitionType> = [
   DEFAULT_TRANSITION,
 ];
@@ -60,6 +63,29 @@ const normalizeTransition = (input: unknown): { type: TransitionType } => {
   );
 };
 
+const normalizeSpeaker = (value: unknown): Speaker => {
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (SUPPORTED_SPEAKERS.includes(normalized as Speaker)) {
+      return normalized as Speaker;
+    }
+
+    throw new Error(
+      `未対応の話者です: ${String(value)}。使用可能な値: ${SUPPORTED_SPEAKERS.join(
+        ", ",
+      )}`,
+    );
+  }
+
+  if (value === undefined || value === null) {
+    return DEFAULT_SPEAKER;
+  }
+
+  throw new Error(
+    `話者は文字列で指定してください (例: "${DEFAULT_SPEAKER}")。`,
+  );
+};
+
 const normalizeMessages = (
   input: unknown,
   slideIndex: number,
@@ -111,18 +137,21 @@ const normalizeGroup = (
 
     return {
       id: `slide-${slideIndex}-group-${groupIndex}`,
+      speaker: DEFAULT_SPEAKER,
       messages: [{ text: trimmed }],
     };
   }
 
   let messagesSource: unknown;
   let id: string | undefined;
+  let speaker: Speaker | undefined;
 
   if (Array.isArray(input)) {
     messagesSource = input;
   } else if (input && typeof input === "object") {
     const group = input as {
       id?: unknown;
+      speaker?: unknown;
       messages?: unknown;
       lines?: unknown;
     };
@@ -130,6 +159,8 @@ const normalizeGroup = (
     if (typeof group.id === "string" && group.id.trim().length > 0) {
       id = group.id.trim();
     }
+
+    speaker = normalizeSpeaker(group.speaker);
 
     if (Array.isArray(group.messages)) {
       messagesSource = group.messages;
@@ -154,6 +185,7 @@ const normalizeGroup = (
 
   return {
     id: id ?? `slide-${slideIndex}-group-${groupIndex}`,
+    speaker: speaker ?? DEFAULT_SPEAKER,
     messages,
   };
 };

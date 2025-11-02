@@ -117,6 +117,10 @@ export default function Home() {
       (group) => group.id === messageGroupId,
     ) ?? 0;
 
+  const currentSpeaker =
+    slideScripts[currentIndex]?.messageGroups?.[currentGroupIndex]?.speaker ??
+    "axolotl";
+
   const totalGroups = slideScripts[currentIndex]?.messageGroups?.length ?? 0;
 
   return (
@@ -130,7 +134,7 @@ export default function Home() {
             currentIndex={currentIndex}
             documentName={documentName}
             isLoading={isLoading}
-            speakerName="ウーパー君"
+            speaker={currentSpeaker}
             messages={displayedMessages}
             slideTitle={currentTitle}
             messageGroupId={messageGroupId}
