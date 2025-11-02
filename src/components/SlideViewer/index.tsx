@@ -27,6 +27,7 @@ type SlideViewerProps = {
   slides: SlideImage[];
   onPageJump: (pageIndex: number) => void;
   audioMode: AudioMode;
+  showFightAnimation: boolean;
 };
 
 export default function SlideViewer({
@@ -50,6 +51,7 @@ export default function SlideViewer({
   slides,
   onPageJump,
   audioMode,
+  showFightAnimation = false,
 }: SlideViewerProps) {
   return (
     <section className={styles.container}>
@@ -67,7 +69,11 @@ export default function SlideViewer({
         totalGroups={totalGroups}
       />
 
-      <SlideDisplay currentSlide={currentSlide} isLoading={isLoading} />
+      <SlideDisplay
+        currentSlide={currentSlide}
+        isLoading={isLoading}
+        showFightAnimation={showFightAnimation}
+      />
 
       <SpeakerMessage
         speaker={speaker}

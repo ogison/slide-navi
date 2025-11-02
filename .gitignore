@@ -43,6 +43,7 @@ next-env.d.ts
 # doc
 /doc
 
-# claude
+# other
 .claude
 .vscode
+.serena

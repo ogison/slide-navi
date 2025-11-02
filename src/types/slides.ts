@@ -15,6 +15,7 @@ export type MessageGroup = {
   id: string;
   speaker: Speaker;
   messages: MessageLine[];
+  animation?: "fight";
 };
 
 export type SlideScript = {

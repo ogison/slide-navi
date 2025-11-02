@@ -85,8 +85,14 @@ export default function Home() {
     slideScripts,
     scriptError,
     showClearEffect,
+    showFightAnimation,
     handleTypingComplete,
   } = useSlidePresentation(slides);
+
+  console.log(
+    "[Home] showFightAnimation from useSlidePresentation:",
+    showFightAnimation,
+  );
 
   // Initialize script placeholder when slides are loaded for the first time
   useEffect(() => {
@@ -144,6 +150,7 @@ export default function Home() {
             currentGroupIndex={currentGroupIndex}
             totalGroups={totalGroups}
             showClearEffect={showClearEffect}
+            showFightAnimation={showFightAnimation}
             onTypingComplete={handleTypingComplete}
             isAutoPlaying={isAutoPlaying}
             onAutoPlayToggle={handleAutoPlayToggle}

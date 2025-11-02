@@ -31,5 +31,36 @@ export const SCRIPT_PLACEHOLDER = `[
         ]
       }
     ]
+  },
+  {
+    "title": "スライド 3: 喧嘩のデモ",
+    "groups": [
+      {
+        "speaker": "axolotl",
+        "messages": [
+          "この機能は私が作ったんだ！"
+        ]
+      },
+      {
+        "speaker": "yagi",
+        "messages": [
+          "いや、僕が手伝ったからできたんだ！"
+        ],
+        "animation": "fight"
+      },
+      {
+        "speaker": "axolotl",
+        "messages": [
+          "なんだとー！"
+        ],
+        "animation": "fight"
+      },
+      {
+        "speaker": "yagi",
+        "messages": [
+          "もうやめようよ、ウーパー君。"
+        ]
+      }
+    ]
   }
 ]`;
