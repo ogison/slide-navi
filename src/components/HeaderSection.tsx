@@ -6,7 +6,7 @@ export default function HeaderSection() {
       <div className={styles.inner}>
         <div className={styles.titles}>
           <p className={styles.badge}>Slide Navi</p>
-          <h1 className={styles.title}>ウーパー君発表アプリ</h1>
+          <h1 className={styles.title}>スライドおしゃべりナビ</h1>
         </div>
       </div>
     </header>
