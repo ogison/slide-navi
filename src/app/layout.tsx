@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const APP_NAME = "Slide Navi";
+const APP_NAME = "スライドおしゃべりナビ";
 const APP_DESCRIPTION =
-  "Slide Naviは、PDFスライドの台本作成から自動再生・音声読み上げまで一括でサポートするプレゼンテーション支援アプリです。";
+  "スライドおしゃべりナビは、PDFスライドの台本作成から自動再生・音声読み上げまで一括でサポートするプレゼンテーション支援アプリです。";
 
 const createMetadataBase = () => {
   const explicitUrl = process.env.NEXT_PUBLIC_APP_URL;

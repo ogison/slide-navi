@@ -89,11 +89,6 @@ export default function Home() {
     handleTypingComplete,
   } = useSlidePresentation(slides);
 
-  console.log(
-    "[Home] showFightAnimation from useSlidePresentation:",
-    showFightAnimation,
-  );
-
   // Initialize script placeholder when slides are loaded for the first time
   useEffect(() => {
     if (slides.length > 0 && !scriptInput.trim()) {
