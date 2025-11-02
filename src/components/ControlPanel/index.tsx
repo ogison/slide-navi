@@ -3,21 +3,29 @@ import { ChangeEvent } from "react";
 import type { AudioSettings } from "@/hooks/useAudioPlayer";
 import type { SpeechSynthesisSettings } from "@/hooks/useSpeechSynthesis";
 import type { AudioMode } from "./AudioSettingsSection";
+import type { SlideScript } from "@/types/slides";
 
 import styles from "./ControlsPanel.module.scss";
 import PdfUploadSection from "./PdfUploadSection";
 import ScriptEditorSection from "./ScriptEditorSection";
 import AutoPlaySection from "./AutoPlaySection";
 import AudioSettingsSection from "./AudioSettingsSection";
+import FormattedScriptView from "./FormattedScriptView";
 
-export type ControlsPanelTab = "upload" | "script" | "playback" | "audio";
+export type ControlsPanelTab =
+  | "upload"
+  | "script"
+  | "preview"
+  | "playback"
+  | "audio";
 
 export const CONTROL_PANEL_TABS: ReadonlyArray<{
   id: ControlsPanelTab;
   label: string;
 }> = [
   { id: "upload", label: "PDF" },
-  { id: "script", label: "スクリプト" },
+  { id: "script", label: "編集" },
+  { id: "preview", label: "プレビュー" },
   { id: "playback", label: "オートプレイ" },
   { id: "audio", label: "音声" },
 ];
@@ -30,6 +38,8 @@ type ControlsPanelProps = {
   autoPlayDelaySeconds: number;
   totalPages: number;
   error: string | null;
+  scriptError: string | null;
+  slideScripts: SlideScript[];
   audioMode: AudioMode;
   onAudioModeChange: (mode: AudioMode) => void;
   audioSettings: AudioSettings;
@@ -51,6 +61,8 @@ export default function ControlsPanel({
   autoPlayDelaySeconds,
   totalPages,
   error,
+  scriptError,
+  slideScripts,
   audioMode,
   onAudioModeChange,
   audioSettings,
@@ -81,8 +93,11 @@ export default function ControlsPanel({
             onScriptChange={onScriptChange}
             totalPages={totalPages}
             hasSlides={hasSlides}
+            error={scriptError}
           />
         );
+      case "preview":
+        return <FormattedScriptView slideScripts={slideScripts} />;
       case "playback":
         return (
           <AutoPlaySection

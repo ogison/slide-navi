@@ -195,6 +195,15 @@
   min-height: 8rem;
   line-height: 1.6;
 }
+
+.textAreaError {
+  border-color: rgba(248, 113, 113, 0.6);
+}
+
+.textAreaError:focus {
+  border-color: rgba(248, 113, 113, 0.75);
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.25);
+}
 .autoPlayControls {
   display: flex;
   flex-direction: column;

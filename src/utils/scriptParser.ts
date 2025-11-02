@@ -1,148 +1,257 @@
 import type {
-  SlideScript,
-  MessageLine,
   MessageGroup,
+  MessageLine,
+  SlideScript,
   TransitionType,
 } from "@/types/slides";
 
-const splitByPunctuation = (text: string): string[] => {
-  // Split long lines by Japanese/Chinese punctuation
-  const maxLength = 40;
-  if (text.length <= maxLength) {
-    return [text];
+const DEFAULT_TRANSITION: TransitionType = "immediate";
+const SUPPORTED_TRANSITIONS: ReadonlyArray<TransitionType> = [
+  DEFAULT_TRANSITION,
+];
+
+const createBlankScripts = (totalPages: number): SlideScript[] => {
+  if (totalPages <= 0) {
+    return [];
   }
 
-  // Split by punctuation marks
-  const parts: string[] = [];
-  const punctuations = /[。、？！?,]/g;
-  let lastIndex = 0;
-  let match;
-
-  while ((match = punctuations.exec(text)) !== null) {
-    const part = text.substring(lastIndex, match.index + 1).trim();
-    if (part) {
-      parts.push(part);
-    }
-    lastIndex = match.index + 1;
-  }
-
-  // Add remaining text
-  if (lastIndex < text.length) {
-    const remaining = text.substring(lastIndex).trim();
-    if (remaining) {
-      parts.push(remaining);
-    }
-  }
-
-  return parts.length > 0 ? parts : [text];
+  return Array.from({ length: totalPages }, () => ({
+    title: undefined,
+    messageGroups: [],
+    transition: { type: DEFAULT_TRANSITION },
+  }));
 };
 
-export const parseScript = (script: string): SlideScript[] => {
+const normalizeTransitionType = (value: unknown): TransitionType => {
+  if (typeof value === "string") {
+    const normalized = value.trim();
+    if (SUPPORTED_TRANSITIONS.includes(normalized as TransitionType)) {
+      return normalized as TransitionType;
+    }
+
+    throw new Error(
+      `未対応の遷移タイプです: ${String(value)}。使用可能な値: ${SUPPORTED_TRANSITIONS.join(
+        ", ",
+      )}`,
+    );
+  }
+
+  if (value === undefined || value === null) {
+    return DEFAULT_TRANSITION;
+  }
+
+  throw new Error(
+    `遷移タイプは文字列で指定してください (例: "${DEFAULT_TRANSITION}")。`,
+  );
+};
+
+const normalizeTransition = (input: unknown): { type: TransitionType } => {
+  if (typeof input === "string" || input === undefined || input === null) {
+    return { type: normalizeTransitionType(input) };
+  }
+
+  if (typeof input === "object") {
+    const transitionObject = input as { type?: unknown };
+    return { type: normalizeTransitionType(transitionObject.type) };
+  }
+
+  throw new Error(
+    "transition プロパティは文字列または { type: string } 形式で指定してください。",
+  );
+};
+
+const normalizeMessages = (
+  input: unknown,
+  slideIndex: number,
+  groupIndex: number,
+): MessageLine[] => {
+  if (!Array.isArray(input)) {
+    throw new Error(
+      `slides[${slideIndex}].groups[${groupIndex}] の messages は配列である必要があります。`,
+    );
+  }
+
+  const messages: MessageLine[] = [];
+
+  input.forEach((item, messageIndex) => {
+    if (typeof item === "string") {
+      const trimmed = item.trim();
+      if (trimmed.length > 0) {
+        messages.push({ text: trimmed });
+      }
+      return;
+    }
+
+    if (item && typeof item === "object") {
+      const text = (item as { text?: unknown }).text;
+      if (typeof text === "string" && text.trim().length > 0) {
+        messages.push({ text: text.trim() });
+        return;
+      }
+    }
+
+    throw new Error(
+      `slides[${slideIndex}].groups[${groupIndex}].messages[${messageIndex}] に有効なテキストがありません。`,
+    );
+  });
+
+  return messages;
+};
+
+const normalizeGroup = (
+  input: unknown,
+  slideIndex: number,
+  groupIndex: number,
+): MessageGroup | null => {
+  if (typeof input === "string") {
+    const trimmed = input.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    return {
+      id: `slide-${slideIndex}-group-${groupIndex}`,
+      messages: [{ text: trimmed }],
+    };
+  }
+
+  let messagesSource: unknown;
+  let id: string | undefined;
+
+  if (Array.isArray(input)) {
+    messagesSource = input;
+  } else if (input && typeof input === "object") {
+    const group = input as {
+      id?: unknown;
+      messages?: unknown;
+      lines?: unknown;
+    };
+
+    if (typeof group.id === "string" && group.id.trim().length > 0) {
+      id = group.id.trim();
+    }
+
+    if (Array.isArray(group.messages)) {
+      messagesSource = group.messages;
+    } else if (Array.isArray(group.lines)) {
+      messagesSource = group.lines;
+    } else if (Array.isArray(group)) {
+      messagesSource = group;
+    } else {
+      messagesSource = [];
+    }
+  } else {
+    throw new Error(
+      `slides[${slideIndex}].groups[${groupIndex}] はオブジェクト、配列、または文字列である必要があります。`,
+    );
+  }
+
+  const messages = normalizeMessages(messagesSource, slideIndex, groupIndex);
+
+  if (messages.length === 0) {
+    return null;
+  }
+
+  return {
+    id: id ?? `slide-${slideIndex}-group-${groupIndex}`,
+    messages,
+  };
+};
+
+const normalizeSlide = (input: unknown, slideIndex: number): SlideScript => {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error(
+      `slides[${slideIndex}] はオブジェクトである必要があります。`,
+    );
+  }
+
+  const slide = input as Record<string, unknown>;
+
+  const rawGroups = Array.isArray(slide.groups)
+    ? slide.groups
+    : Array.isArray(slide.messageGroups)
+      ? slide.messageGroups
+      : Array.isArray(slide.messages)
+        ? [slide.messages]
+        : [];
+
+  const messageGroups = (rawGroups as unknown[])
+    .map((group, groupIndex) => normalizeGroup(group, slideIndex, groupIndex))
+    .filter((group): group is MessageGroup => group !== null);
+
+  const title =
+    typeof slide.title === "string" && slide.title.trim().length > 0
+      ? slide.title.trim()
+      : undefined;
+
+  return {
+    title,
+    messageGroups,
+    transition: normalizeTransition(slide.transition),
+  };
+};
+
+const extractSlides = (parsed: unknown): unknown[] => {
+  if (Array.isArray(parsed)) {
+    return parsed;
+  }
+
+  if (
+    parsed &&
+    typeof parsed === "object" &&
+    Array.isArray((parsed as { slides?: unknown }).slides)
+  ) {
+    return (parsed as { slides: unknown[] }).slides as unknown[];
+  }
+
+  throw new Error(
+    "スクリプトJSONは配列、または slides プロパティに配列を持つオブジェクトである必要があります。",
+  );
+};
+
+export const parseScriptJson = (script: string): SlideScript[] => {
   if (!script.trim()) {
     return [];
   }
 
-  const normalized = script.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-
-  // Split by lines starting with #
-  const sections: string[] = [];
-  const lines = normalized.split("\n");
-  let currentSection = "";
-
-  for (const line of lines) {
-    if (line.startsWith("# ")) {
-      if (currentSection.trim()) {
-        sections.push(currentSection.trim());
-      }
-      currentSection = line;
-    } else {
-      currentSection += "\n" + line;
-    }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(script);
+  } catch {
+    throw new Error(
+      "スクリプトJSONの解析に失敗しました。構文を確認してください。",
+    );
   }
 
-  // Add the last section
-  if (currentSection.trim()) {
-    sections.push(currentSection.trim());
-  }
+  const slides = extractSlides(parsed);
 
-  return sections.map((slideText, slideIndex) => {
-    const lines = slideText.split("\n");
-    let title: string | undefined;
-    const messageGroups: MessageGroup[] = [];
-    const transition = {
-      type: "immediate" as TransitionType,
-    };
-
-    let currentGroup: string[] = [];
-    let groupIndex = 0;
-
-    const finishCurrentGroup = () => {
-      if (currentGroup.length > 0) {
-        const groupText = currentGroup.join("\n");
-        const parts = splitByPunctuation(groupText);
-        const groupMessages: MessageLine[] = parts.map((part) => ({
-          text: part,
-        }));
-
-        messageGroups.push({
-          id: `slide-${slideIndex}-group-${groupIndex}`,
-          messages: groupMessages,
-        });
-
-        currentGroup = [];
-        groupIndex++;
-      }
-    };
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      // Check for title (first line starting with #)
-      if (line.startsWith("# ")) {
-        title = line.substring(2).trim();
-        continue;
-      }
-
-      // If empty line, finish current group
-      if (!line.trim()) {
-        finishCurrentGroup();
-        continue;
-      }
-
-      // Add line to current group
-      currentGroup.push(line);
-    }
-
-    // Add remaining group if any
-    finishCurrentGroup();
-
-    return { title, messageGroups, transition };
-  });
+  return slides.map((slide, index) => normalizeSlide(slide, index));
 };
 
 export const createSlideScripts = (
   scriptInput: string,
   totalPages: number,
 ): SlideScript[] => {
-  const scripts = parseScript(scriptInput);
+  if (!scriptInput.trim()) {
+    return createBlankScripts(totalPages);
+  }
+
+  const scripts = parseScriptJson(scriptInput);
 
   if (!totalPages) {
     return scripts;
   }
 
-  // Scripts are mapped to slides in order, regardless of page count
-  // This ensures all script sections are used, even if there are more scripts than slides
   const result: SlideScript[] = [];
 
   for (let i = 0; i < totalPages; i++) {
     if (i < scripts.length) {
-      // Use the corresponding script
       result.push(scripts[i]);
     } else {
-      // If no more scripts available, use empty script
       result.push({
+        title: undefined,
         messageGroups: [],
-        transition: { type: "immediate" },
+        transition: { type: DEFAULT_TRANSITION },
       });
     }
   }

@@ -7,6 +7,7 @@ type ScriptEditorSectionProps = {
   onScriptChange: (value: string) => void;
   totalPages: number;
   hasSlides: boolean;
+  error: string | null;
 };
 
 export default function ScriptEditorSection({
@@ -14,8 +15,10 @@ export default function ScriptEditorSection({
   onScriptChange,
   totalPages,
   hasSlides,
+  error,
 }: ScriptEditorSectionProps) {
   const [isRulesOpen, setIsRulesOpen] = useState(false);
+
   const handleScriptChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     onScriptChange(event.target.value);
   };
@@ -23,18 +26,19 @@ export default function ScriptEditorSection({
   const scriptRuleSections = useMemo(
     () => [
       {
-        title: "基本ルール",
+        title: "入力形式",
         items: [
-          "スライドは # で始まる行で区切ります。",
-          "各スライド内では1行が1メッセージとして扱われます。",
-          "空行を入れるとメッセージウィンドウがクリアされ、次のメッセージグループが始まります。",
+          'トップレベルはスライドの配列、または { "slides": [...] } 形式のオブジェクトです。',
+          "各スライドは title (任意)、groups (必須)、transition (任意) を指定できます。",
+          'transition.type は "immediate" のみサポートしています。',
         ],
       },
       {
-        title: "ヒント",
+        title: "groups の構造",
         items: [
-          "PDFのページ数と台本のセクション数をそろえると自動再生がスムーズです。",
-          "40文字を超える長文は句読点ごとに自動的に分割されます。",
+          '各要素は文字列配列、または { "messages": [...] } 形式のオブジェクトです。',
+          'messages の要素は文字列、または { "text": "発話内容" } で指定します。',
+          "空の文字列や空の配列は無視されます。必要に応じてスライド数と groups 数を揃えてください。",
         ],
       },
     ],
@@ -43,14 +47,21 @@ export default function ScriptEditorSection({
 
   const toggleRules = () => setIsRulesOpen((previous) => !previous);
 
+  const textAreaClassName = error
+    ? `${styles.textArea} ${styles.textAreaError}`
+    : styles.textArea;
+
+  const labelText = hasSlides
+    ? `JSON 台本 (${totalPages} ページ)`
+    : "JSON 台本";
+
   return (
     <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>メッセージウィンドウ</h2>
+      <h2 className={styles.sectionTitle}>台本 (JSON)</h2>
 
       <div className={styles.fieldLabelRow}>
-        <label className={styles.fieldLabel} htmlFor="script-text">
-          台本
-          {hasSlides ? `（全${totalPages}ページ）` : ""}
+        <label className={styles.fieldLabel} htmlFor="script-json">
+          {labelText}
         </label>
 
         <button
@@ -60,19 +71,28 @@ export default function ScriptEditorSection({
           aria-expanded={isRulesOpen}
           aria-controls="script-rules"
         >
-          {isRulesOpen ? "ルールを隠す" : "ルールを見る"}
+          {isRulesOpen ? "ルールを閉じる" : "ルールを表示"}
         </button>
       </div>
 
       <textarea
-        id="script-text"
+        id="script-json"
         value={script}
         onChange={handleScriptChange}
-        className={styles.textArea}
-        rows={8}
+        className={textAreaClassName}
+        rows={12}
         placeholder={SCRIPT_PLACEHOLDER}
         disabled={!hasSlides}
+        spellCheck={false}
+        aria-invalid={error ? "true" : undefined}
+        aria-describedby={error ? "script-json-error" : undefined}
       />
+
+      {error ? (
+        <p id="script-json-error" className={styles.error} role="alert">
+          {error}
+        </p>
+      ) : null}
 
       {isRulesOpen ? (
         <div id="script-rules" className={styles.rulesPanel}>
@@ -91,8 +111,8 @@ export default function ScriptEditorSection({
 
       <p className={styles.sectionDescription}>
         {hasSlides
-          ? "# で始まる行でスライドを区切ります。改行でメッセージを区切ります。"
-          : "PDFをアップロードすると、# で区切った台本を入力できます。"}
+          ? "PDF を読み込むとサンプル JSON が入力されます。ページ順に内容を編集してください。"
+          : "先に PDF をアップロードすると JSON 入力欄が有効になります。"}
       </p>
     </div>
   );

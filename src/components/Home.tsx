@@ -82,6 +82,7 @@ export default function Home() {
     handleAutoPlayDelayChange,
     resetSlideState,
     slideScripts,
+    scriptError,
     showClearEffect,
     handleTypingComplete,
   } = useSlidePresentation(slides);
@@ -162,6 +163,8 @@ export default function Home() {
                 autoPlayDelaySeconds={autoPlayDelaySeconds}
                 totalPages={totalPages}
                 error={error}
+                scriptError={scriptError}
+                slideScripts={slideScripts}
                 audioMode={audioMode}
                 onAudioModeChange={handleAudioModeChange}
                 audioSettings={audioSettings}
