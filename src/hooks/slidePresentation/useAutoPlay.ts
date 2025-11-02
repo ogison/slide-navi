@@ -81,7 +81,7 @@ export const useAutoPlay = ({
     // Schedule next action - タイプライター完了後にディレイを開始
     const timer = window.setTimeout(
       scheduleNextAction,
-      autoPlayDelaySeconds * 1000
+      autoPlayDelaySeconds * 1000,
     );
 
     return () => window.clearTimeout(timer);

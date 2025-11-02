@@ -3,7 +3,7 @@
   pageNumber: number;
 };
 
-export type TransitionType = 'immediate';
+export type TransitionType = "immediate";
 
 export type MessageLine = {
   text: string;
@@ -21,4 +21,3 @@ export type SlideScript = {
     type: TransitionType;
   };
 };
-

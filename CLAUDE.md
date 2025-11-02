@@ -97,6 +97,7 @@ Scripts use a markdown-like format with specific parsing rules:
   - Each group displays as a separate typewriter animation
   - Auto-play advances through groups before moving to next slide
   - Example:
+
     ```
     # Slide 1
     First message group
@@ -152,6 +153,7 @@ npm run format
 ## Pre-commit Hooks
 
 Husky automatically runs on commits:
+
 1. `npm run format` - Prettier formatting
 2. `npm run lint` - ESLint checks
 

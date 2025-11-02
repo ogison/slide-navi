@@ -41,7 +41,7 @@ export function useTypewriterEffect({
 
   const fullMessage = useMemo(
     () => messages.map((m) => m.text).join("\n"),
-    [messages]
+    [messages],
   );
 
   useEffect(() => {
@@ -163,7 +163,7 @@ export function useTypewriterEffect({
           if (currentIndex < fullMessage.length) {
             timeoutRef.current = window.setTimeout(
               typingTick,
-              TYPEWRITER_DELAY_MS
+              TYPEWRITER_DELAY_MS,
             );
           } else {
             timeoutRef.current = null;
@@ -190,7 +190,7 @@ export function useTypewriterEffect({
           if (currentIndex < fullMessage.length) {
             timeoutRef.current = window.setTimeout(
               typingTick,
-              TYPEWRITER_DELAY_MS
+              TYPEWRITER_DELAY_MS,
             );
           } else {
             timeoutRef.current = null;

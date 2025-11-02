@@ -3,6 +3,7 @@
 ## 📁 プロジェクト構造
 
 ### ルートディレクトリ構成
+
 ```
 slide-navi/
 ├── src/                    # アプリケーションソースコード
@@ -23,6 +24,7 @@ slide-navi/
 ```
 
 ### App Router構造
+
 ```
 src/app/
 ├── layout.tsx             # ルートレイアウト
@@ -42,18 +44,19 @@ src/app/
 
 ### ファイル・フォルダ命名規則
 
-| 種類 | 命名規則 | 例 |
-|------|---------|-----|
-| **appディレクトリ内** | kebab-case | `user-profile/page.tsx` |
-| **componentsディレクトリ内** | PascalCase | `UserProfile.tsx` |
-| **hooksディレクトリ内** | camelCase + use prefix | `useAuth.ts` |
-| **utilsディレクトリ内** | camelCase | `formatDate.ts` |
-| **型定義ファイル** | PascalCase | `User.types.ts` |
-| **定数ファイル** | kebab-case | `api-config.ts` |
+| 種類                         | 命名規則               | 例                      |
+| ---------------------------- | ---------------------- | ----------------------- |
+| **appディレクトリ内**        | kebab-case             | `user-profile/page.tsx` |
+| **componentsディレクトリ内** | PascalCase             | `UserProfile.tsx`       |
+| **hooksディレクトリ内**      | camelCase + use prefix | `useAuth.ts`            |
+| **utilsディレクトリ内**      | camelCase              | `formatDate.ts`         |
+| **型定義ファイル**           | PascalCase             | `User.types.ts`         |
+| **定数ファイル**             | kebab-case             | `api-config.ts`         |
 
 ### コード内命名規則
 
 #### React コンポーネント
+
 ```typescript
 // ✅ 良い例
 export const UserProfile = () => { ... }
@@ -63,6 +66,7 @@ export const userProfile = () => { ... }
 ```
 
 #### カスタムフック
+
 ```typescript
 // ✅ 良い例
 export const useUserData = () => { ... }
@@ -74,6 +78,7 @@ export const UseUserData = () => { ... }  // PascalCase
 ```
 
 #### ユーティリティ関数
+
 ```typescript
 // ✅ 良い例
 export const formatDate = (date: Date) => { ... }
@@ -89,6 +94,7 @@ export const hasPermission = (user: User) => { ... }
 ```
 
 #### TypeScript 型定義
+
 ```typescript
 // インターフェース（PascalCase）
 interface User {
@@ -97,7 +103,7 @@ interface User {
 }
 
 // 型エイリアス（PascalCase）
-type UserRole = 'admin' | 'user' | 'guest';
+type UserRole = "admin" | "user" | "guest";
 
 // Props型（PascalCase + Propsサフィックス）
 interface UserProfileProps {
@@ -107,16 +113,17 @@ interface UserProfileProps {
 ```
 
 #### 定数・Enum
+
 ```typescript
 // 定数（UPPER_SNAKE_CASE）
-export const API_BASE_URL = 'https://api.example.com';
+export const API_BASE_URL = "https://api.example.com";
 export const MAX_RETRY_COUNT = 3;
 
 // Enum（PascalCase / 値はUPPER_SNAKE_CASE）
 enum UserStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  PENDING = 'PENDING',
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  PENDING = "PENDING",
 }
 ```
 
@@ -125,11 +132,13 @@ enum UserStatus {
 ### コンポーネント分類
 
 #### 1. UIコンポーネント（components/ui/）
+
 - 汎用的な表示専用コンポーネント
 - ビジネスロジックを含まない
 - 例：Button, Card, Modal, Input
 
 #### 2. 機能コンポーネント（features/）
+
 - 特定の機能に紐づくコンポーネント
 - ビジネスロジックを含む
 - フォルダで機能単位にグループ化
@@ -148,10 +157,12 @@ features/
 ```
 
 #### 3. レイアウトコンポーネント（components/layout/）
+
 - ページレイアウト用コンポーネント
 - Header, Footer, Sidebar など
 
 ### コンポーネントファイル構成
+
 ```typescript
 // UserProfile.tsx
 import { FC } from 'react';
@@ -178,14 +189,17 @@ export const UserProfile: FC<UserProfileProps> = ({ user, onEdit }) => {
 ## 🎨 スタイリング規則
 
 ### CSS Modules使用時
+
 - ファイル名: `ComponentName.module.css`
 - クラス名: camelCase（`styles.userProfile`）
 
 ### Tailwind CSS使用時
+
 - コンポーネント内で直接クラス指定
 - カスタムクラスは`@apply`で定義
 
 ### SASS/SCSS使用時
+
 - ファイル名: `ComponentName.module.scss`
 - 変数・ミックスイン: `src/styles/_variables.scss`
 
@@ -212,11 +226,13 @@ export const UserProfile: FC<UserProfileProps> = ({ user, onEdit }) => {
 ## 🔒 セキュリティ規則
 
 ### 絶対禁止事項
+
 - APIキー、シークレットのハードコーディング
 - 機密情報のコミット
 - ユーザー入力の未検証使用
 
 ### 必須対策
+
 - 環境変数による秘匿情報管理
 - 入力値検証とサニタイジング
 - CSRFトークンの実装
@@ -224,20 +240,24 @@ export const UserProfile: FC<UserProfileProps> = ({ user, onEdit }) => {
 ## 📊 状態管理
 
 ### ローカル状態
+
 - `useState`の使用
 - 単一コンポーネント内で完結する状態
 
 ### グローバル状態
+
 - Context APIまたは状態管理ライブラリ使用
 - 複数コンポーネント間で共有する状態
 
 ### サーバー状態
+
 - React Query / SWR等の使用を推奨
 - キャッシュ管理の実装
 
 ## 🧪 テスト規約
 
 ### テストファイル配置
+
 ```
 src/
 ├── components/
@@ -247,12 +267,14 @@ src/
 ```
 
 ### テスト命名
+
 - ファイル名: `ComponentName.test.tsx`
 - テストケース: 日本語での記述も可
 
 ## 📌 ベストプラクティス
 
 ### DO（推奨事項）
+
 - ✅ 一貫性のある命名規則の遵守
 - ✅ 機能単位でのファイル整理
 - ✅ TypeScriptの厳格な型定義
@@ -260,6 +282,7 @@ src/
 - ✅ アクセシビリティへの配慮
 
 ### DON'T（避けるべき事項）
+
 - ❌ appディレクトリへの全コード配置
 - ❌ 200+ファイルの単一フォルダ配置
 - ❌ 7階層以上のディレクトリネスト
@@ -269,6 +292,7 @@ src/
 ## 🔄 Git コミット規約
 
 ### コミットメッセージ形式
+
 ```
 <type>: <description>
 
@@ -276,6 +300,7 @@ src/
 ```
 
 ### Type一覧
+
 - `feat`: 新機能
 - `fix`: バグ修正
 - `docs`: ドキュメント変更

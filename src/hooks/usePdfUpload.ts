@@ -19,7 +19,7 @@ export const usePdfUpload = () => {
 
       if (file.type !== "application/pdf") {
         setError(
-          "PDFファイルのみ対応しています。PowerPointの場合はPDFに変換してから読み込んでください。"
+          "PDFファイルのみ対応しています。PowerPointの場合はPDFに変換してから読み込んでください。",
         );
         event.target.value = "";
         return;
@@ -36,7 +36,7 @@ export const usePdfUpload = () => {
       } catch (pdfError) {
         console.error(pdfError);
         setError(
-          "PDFの読み込みに失敗しました。ファイルが破損していないか確認してください。"
+          "PDFの読み込みに失敗しました。ファイルが破損していないか確認してください。",
         );
         setSlides([]);
       } finally {
@@ -44,7 +44,7 @@ export const usePdfUpload = () => {
         event.target.value = "";
       }
     },
-    []
+    [],
   );
 
   const resetPdfState = useCallback(() => {

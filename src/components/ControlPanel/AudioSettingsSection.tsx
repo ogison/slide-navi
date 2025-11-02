@@ -136,10 +136,7 @@ export default function AudioSettingsSection({
       {audioMode === "speech" && isSpeechSupported && (
         <div className={styles.audioControls}>
           <div className={styles.volumeInputGroup}>
-            <label
-              className={styles.fieldLabel}
-              htmlFor="speech-volume-slider"
-            >
+            <label className={styles.fieldLabel} htmlFor="speech-volume-slider">
               音量: {Math.round(speechSettings.volume * 100)}%
             </label>
 
