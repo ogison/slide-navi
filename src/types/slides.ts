@@ -9,8 +9,11 @@ export type MessageLine = {
   text: string;
 };
 
+export type Speaker = "axolotl" | "yagi";
+
 export type MessageGroup = {
   id: string;
+  speaker: Speaker;
   messages: MessageLine[];
 };
 

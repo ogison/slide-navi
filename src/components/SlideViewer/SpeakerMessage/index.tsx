@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import type { MessageLine } from "@/types/slides";
+import type { MessageLine, Speaker } from "@/types/slides";
 import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
@@ -10,7 +10,7 @@ import MessageDisplay from "./MessageDisplay";
 import styles from "./SpeakerMessage.module.scss";
 
 type SpeakerMessageProps = {
-  speakerName: string;
+  speaker: Speaker;
   messages: MessageLine[];
   messageGroupId: string;
   showClearEffect?: boolean;
@@ -19,12 +19,25 @@ type SpeakerMessageProps = {
   isAutoPlaying: boolean;
 };
 
+const speakerSettings = {
+  axolotl: {
+    name: "ウーパー君",
+    baseIcon: "/images/speaker_axolotl.png",
+    talkingIcon: "/images/speaker_axolotl_2.png",
+  },
+  yagi: {
+    name: "やぎ君",
+    baseIcon: "/images/speaker_yagi.png",
+    talkingIcon: "/images/speaker_yagi_2.png",
+  },
+};
+
 /**
  * Component to display speaker messages with typewriter effect
  * Includes speaker icon with animation and message text display
  */
 export default function SpeakerMessage({
-  speakerName,
+  speaker,
   messages,
   messageGroupId,
   showClearEffect = false,
@@ -32,6 +45,8 @@ export default function SpeakerMessage({
   audioMode,
   isAutoPlaying,
 }: SpeakerMessageProps) {
+  const { name, baseIcon, talkingIcon } = speakerSettings[speaker];
+
   // Audio player integration (typewriter sound)
   const { startTypingSound, stopTypingSound } = useAudioPlayer();
 
@@ -140,6 +155,8 @@ export default function SpeakerMessage({
     isTyping,
     isClearing,
     isSpeaking,
+    baseIcon,
+    talkingIcon,
   });
 
   // Prepare lines for rendering
@@ -150,7 +167,7 @@ export default function SpeakerMessage({
   return (
     <div className={styles.messagePanel}>
       <div className={styles.messageCard}>
-        <SpeakerIcon iconSrc={iconSrc} speakerName={speakerName} />
+        <SpeakerIcon iconSrc={iconSrc} speakerName={name} />
         <MessageDisplay lines={linesToRender} />
       </div>
     </div>

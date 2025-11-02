@@ -1,4 +1,4 @@
-﻿import type { SlideImage, MessageLine } from "../../types/slides";
+﻿import type { SlideImage, MessageLine, Speaker } from "../../types/slides";
 import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import styles from "./SlideViewer.module.scss";
 import SlideViewerHeader from "./SlideViewerHeader";
@@ -12,7 +12,7 @@ type SlideViewerProps = {
   currentIndex: number;
   documentName: string;
   isLoading: boolean;
-  speakerName: string;
+  speaker: Speaker;
   messages: MessageLine[];
   slideTitle?: string;
   messageGroupId: string;
@@ -35,7 +35,7 @@ export default function SlideViewer({
   currentIndex,
   documentName,
   isLoading,
-  speakerName,
+  speaker,
   messages,
   slideTitle,
   messageGroupId,
@@ -70,7 +70,7 @@ export default function SlideViewer({
       <SlideDisplay currentSlide={currentSlide} isLoading={isLoading} />
 
       <SpeakerMessage
-        speakerName={speakerName}
+        speaker={speaker}
         messages={messages}
         messageGroupId={messageGroupId}
         showClearEffect={showClearEffect}

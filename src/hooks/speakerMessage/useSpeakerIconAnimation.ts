@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { ICON_ANIMATION_INTERVAL_MS } from "@/constants/typewriter";
 
-const SPEAKER_ICON_DEFAULT = "/speaker.png";
-const SPEAKER_ICON_ALTERNATE = "/speaker_2.png";
-
 interface UseSpeakerIconAnimationProps {
   isTyping: boolean;
   isClearing: boolean;
   isSpeaking: boolean;
+  baseIcon: string;
+  talkingIcon: string;
 }
 
 /**
@@ -18,6 +17,8 @@ export function useSpeakerIconAnimation({
   isTyping,
   isClearing,
   isSpeaking,
+  baseIcon,
+  talkingIcon,
 }: UseSpeakerIconAnimationProps) {
   const [currentIconIndex, setCurrentIconIndex] = useState(0);
   const iconIntervalRef = useRef<number | null>(null);
@@ -49,9 +50,9 @@ export function useSpeakerIconAnimation({
   const iconSrc =
     isTyping || isClearing || isSpeaking
       ? currentIconIndex === 0
-        ? SPEAKER_ICON_DEFAULT
-        : SPEAKER_ICON_ALTERNATE
-      : SPEAKER_ICON_DEFAULT;
+        ? baseIcon
+        : talkingIcon
+      : baseIcon;
 
   return { iconSrc };
 }
