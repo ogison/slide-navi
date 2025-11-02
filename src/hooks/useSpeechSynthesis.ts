@@ -48,7 +48,9 @@ export const useSpeechSynthesis = () => {
 
       // 日本語音声がデフォルト音声として設定されていない場合、自動選択
       if (voices.length > 0 && !settings.voiceName) {
-        const japaneseVoice = voices.find((voice) => voice.lang.startsWith("ja"));
+        const japaneseVoice = voices.find((voice) =>
+          voice.lang.startsWith("ja"),
+        );
         if (japaneseVoice) {
           setSettings((prev) => ({ ...prev, voiceName: japaneseVoice.name }));
         }
@@ -123,7 +125,7 @@ export const useSpeechSynthesis = () => {
       // 指定された音声を設定
       if (settings.voiceName) {
         const voice = availableVoices.find(
-          (v) => v.name === settings.voiceName
+          (v) => v.name === settings.voiceName,
         );
         if (voice) {
           utterance.voice = voice;
@@ -146,7 +148,7 @@ export const useSpeechSynthesis = () => {
       utteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     },
-    [isSupported, settings, availableVoices]
+    [isSupported, settings, availableVoices],
   );
 
   /**

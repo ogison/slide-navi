@@ -13,25 +13,29 @@ const activeAudios = new Set<HTMLAudioElement>();
  * 音声ファイルをプリロード
  */
 const preloadAudio = (): void => {
-  if (!audioCache && typeof window !== 'undefined') {
-    audioCache = new Audio('/sounds/message-type.mp3');
-    audioCache.preload = 'auto';
+  if (!audioCache && typeof window !== "undefined") {
+    audioCache = new Audio("/sounds/message-type.mp3");
+    audioCache.preload = "auto";
 
     // ロード完了時のハンドラ
-    audioCache.addEventListener('canplaythrough', () => {
-      isAudioLoaded = true;
-    }, { once: true });
+    audioCache.addEventListener(
+      "canplaythrough",
+      () => {
+        isAudioLoaded = true;
+      },
+      { once: true },
+    );
 
     // エラーハンドラ
-    audioCache.addEventListener('error', (e) => {
-      console.warn('Failed to load message-type.mp3:', e);
+    audioCache.addEventListener("error", (e) => {
+      console.warn("Failed to load message-type.mp3:", e);
       isAudioLoaded = false;
     });
   }
 };
 
 // 初回アクセス時にプリロード
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   preloadAudio();
 }
 
@@ -45,20 +49,20 @@ export const playTypewriterSound = (volume: number = 0.3): void => {
       preloadAudio();
 
       // 初回のみ、新しいインスタンスで即座に再生を試みる
-      const audio = new Audio('/sounds/message-type.mp3');
+      const audio = new Audio("/sounds/message-type.mp3");
       audio.volume = Math.max(0, Math.min(1, volume));
 
       // 再生中の音声として追跡
       activeAudios.add(audio);
 
       // 再生終了後に追跡から削除
-      audio.addEventListener('ended', () => {
+      audio.addEventListener("ended", () => {
         activeAudios.delete(audio);
         audio.remove();
       });
 
-      audio.play().catch(err => {
-        console.warn('Failed to play message-type.mp3:', err);
+      audio.play().catch((err) => {
+        console.warn("Failed to play message-type.mp3:", err);
         activeAudios.delete(audio);
       });
       return;
@@ -72,17 +76,17 @@ export const playTypewriterSound = (volume: number = 0.3): void => {
     activeAudios.add(audioClone);
 
     // 再生終了後にメモリを解放
-    audioClone.addEventListener('ended', () => {
+    audioClone.addEventListener("ended", () => {
       activeAudios.delete(audioClone);
       audioClone.remove();
     });
 
-    audioClone.play().catch(err => {
-      console.warn('Failed to play message-type.mp3:', err);
+    audioClone.play().catch((err) => {
+      console.warn("Failed to play message-type.mp3:", err);
       activeAudios.delete(audioClone);
     });
   } catch (error) {
-    console.warn('Failed to play typewriter sound:', error);
+    console.warn("Failed to play typewriter sound:", error);
   }
 };
 
@@ -90,7 +94,7 @@ export const playTypewriterSound = (volume: number = 0.3): void => {
  * すべての再生中のタイプライター音を停止
  */
 export const stopAllTypewriterSounds = (): void => {
-  activeAudios.forEach(audio => {
+  activeAudios.forEach((audio) => {
     audio.pause();
     audio.currentTime = 0;
     activeAudios.delete(audio);
@@ -115,7 +119,7 @@ export const cleanupAudioContext = (): void => {
 
   if (audioCache) {
     audioCache.pause();
-    audioCache.src = '';
+    audioCache.src = "";
     audioCache = null;
     isAudioLoaded = false;
   }

@@ -10,13 +10,23 @@ import ScriptEditorSection from "./ScriptEditorSection";
 import AutoPlaySection from "./AutoPlaySection";
 import AudioSettingsSection from "./AudioSettingsSection";
 
+export type ControlsPanelTab = "upload" | "script" | "playback" | "audio";
+
+export const CONTROL_PANEL_TABS: ReadonlyArray<{
+  id: ControlsPanelTab;
+  label: string;
+}> = [
+  { id: "upload", label: "PDF" },
+  { id: "script", label: "スクリプト" },
+  { id: "playback", label: "オートプレイ" },
+  { id: "audio", label: "音声" },
+];
+
 type ControlsPanelProps = {
   onPdfUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onScriptChange: (value: string) => void;
-  onAutoPlayToggle: () => void;
   onAutoPlayDelayChange: (seconds: number) => void;
   script: string;
-  isAutoPlaying: boolean;
   autoPlayDelaySeconds: number;
   totalPages: number;
   error: string | null;
@@ -30,15 +40,14 @@ type ControlsPanelProps = {
   onSpeechVoiceChange: (voiceName: string) => void;
   availableVoices: SpeechSynthesisVoice[];
   isSpeechSupported: boolean;
+  activeTab: ControlsPanelTab;
 };
 
 export default function ControlsPanel({
   onPdfUpload,
   onScriptChange,
-  onAutoPlayToggle,
   onAutoPlayDelayChange,
   script,
-  isAutoPlaying,
   autoPlayDelaySeconds,
   totalPages,
   error,
@@ -52,40 +61,63 @@ export default function ControlsPanel({
   onSpeechVoiceChange,
   availableVoices,
   isSpeechSupported,
+  activeTab,
 }: ControlsPanelProps) {
   const hasSlides = totalPages > 0;
 
+  const renderContent = () => {
+    switch (activeTab) {
+      case "upload":
+        return (
+          <>
+            <PdfUploadSection onPdfUpload={onPdfUpload} />
+            {error && <div className={styles.error}>{error}</div>}
+          </>
+        );
+      case "script":
+        return (
+          <ScriptEditorSection
+            script={script}
+            onScriptChange={onScriptChange}
+            totalPages={totalPages}
+            hasSlides={hasSlides}
+          />
+        );
+      case "playback":
+        return (
+          <AutoPlaySection
+            autoPlayDelaySeconds={autoPlayDelaySeconds}
+            onAutoPlayDelayChange={onAutoPlayDelayChange}
+            totalPages={totalPages}
+          />
+        );
+      case "audio":
+        return (
+          <AudioSettingsSection
+            audioMode={audioMode}
+            onAudioModeChange={onAudioModeChange}
+            audioSettings={audioSettings}
+            onVolumeChange={onVolumeChange}
+            speechSettings={speechSettings}
+            onSpeechVolumeChange={onSpeechVolumeChange}
+            onSpeechRateChange={onSpeechRateChange}
+            onSpeechVoiceChange={onSpeechVoiceChange}
+            availableVoices={availableVoices}
+            isSpeechSupported={isSpeechSupported}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <aside className={styles.container}>
-      <PdfUploadSection onPdfUpload={onPdfUpload} />
-
-      <ScriptEditorSection
-        script={script}
-        onScriptChange={onScriptChange}
-        totalPages={totalPages}
-        hasSlides={hasSlides}
-      />
-
-      <AutoPlaySection
-        autoPlayDelaySeconds={autoPlayDelaySeconds}
-        onAutoPlayDelayChange={onAutoPlayDelayChange}
-        totalPages={totalPages}
-      />
-
-      <AudioSettingsSection
-        audioMode={audioMode}
-        onAudioModeChange={onAudioModeChange}
-        audioSettings={audioSettings}
-        onVolumeChange={onVolumeChange}
-        speechSettings={speechSettings}
-        onSpeechVolumeChange={onSpeechVolumeChange}
-        onSpeechRateChange={onSpeechRateChange}
-        onSpeechVoiceChange={onSpeechVoiceChange}
-        availableVoices={availableVoices}
-        isSpeechSupported={isSpeechSupported}
-      />
-
-      {error && <div className={styles.error}>{error}</div>}
+    <aside
+      className={styles.container}
+      role="region"
+      aria-label="コントロールパネル"
+    >
+      {renderContent()}
     </aside>
   );
 }

@@ -38,7 +38,7 @@ export default function ScriptEditorSection({
         ],
       },
     ],
-    []
+    [],
   );
 
   const toggleRules = () => setIsRulesOpen((previous) => !previous);

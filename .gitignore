@@ -44,5 +44,5 @@ next-env.d.ts
 /doc
 
 # claude
-/.claude
 .claude
+.vscode

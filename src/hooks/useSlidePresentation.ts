@@ -100,7 +100,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
       const prevSlideScript = slideScripts[currentIndex - 1];
       const prevSlideLastGroupIndex = Math.max(
         0,
-        prevSlideScript.messageGroups.length - 1
+        prevSlideScript.messageGroups.length - 1,
       );
 
       setCurrentIndex(currentIndex - 1);
@@ -157,7 +157,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
       resetGroupState();
       setTypingComplete(true);
     },
-    [stopAutoPlay, navJumpTo, resetGroupState, setTypingComplete]
+    [stopAutoPlay, navJumpTo, resetGroupState, setTypingComplete],
   );
 
   const resetSlideState = useCallback(() => {

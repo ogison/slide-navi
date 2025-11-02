@@ -122,7 +122,7 @@ export const parseScript = (script: string): SlideScript[] => {
 
 export const createSlideScripts = (
   scriptInput: string,
-  totalPages: number
+  totalPages: number,
 ): SlideScript[] => {
   const scripts = parseScript(scriptInput);
 

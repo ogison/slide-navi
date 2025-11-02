@@ -74,7 +74,7 @@ export default function SpeakerMessage({
   // メッセージの全文を取得
   const fullMessage = useMemo(
     () => messages.map((m) => m.text).join("\n"),
-    [messages]
+    [messages],
   );
 
   // 音声モードが変更されたときに既存の音声を停止

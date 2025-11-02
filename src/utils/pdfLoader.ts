@@ -28,7 +28,7 @@ export const loadPdfjsModule = async (): Promise<PdfJsModule> => {
 };
 
 export const renderPdfToSlides = async (
-  arrayBuffer: ArrayBuffer
+  arrayBuffer: ArrayBuffer,
 ): Promise<SlideImage[]> => {
   const pdfjs = await loadPdfjsModule();
   const loadingTask = pdfjs.getDocument({

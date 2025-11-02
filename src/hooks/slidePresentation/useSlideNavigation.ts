@@ -18,7 +18,7 @@ export const useSlideNavigation = ({
         onSlideChange?.();
       }
     },
-    [totalPages, onSlideChange]
+    [totalPages, onSlideChange],
   );
 
   const resetIndex = useCallback(() => {

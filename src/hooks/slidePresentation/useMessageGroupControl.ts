@@ -29,7 +29,7 @@ export const useMessageGroupControl = ({
 
     // グループインデックスが範囲外の場合は空配列を返す
     return [];
-  }, [currentMessageGroups, currentGroupIndex, currentIndex]);
+  }, [currentMessageGroups, currentGroupIndex]);
 
   const messageGroupId =
     currentMessageGroups[currentGroupIndex]?.id ||
