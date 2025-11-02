@@ -50,6 +50,7 @@ type ControlsPanelProps = {
   onSpeechVoiceChange: (voiceName: string) => void;
   availableVoices: SpeechSynthesisVoice[];
   isSpeechSupported: boolean;
+  getJapaneseVoices: () => SpeechSynthesisVoice[];
   activeTab: ControlsPanelTab;
 };
 
@@ -73,6 +74,7 @@ export default function ControlsPanel({
   onSpeechVoiceChange,
   availableVoices,
   isSpeechSupported,
+  getJapaneseVoices,
   activeTab,
 }: ControlsPanelProps) {
   const hasSlides = totalPages > 0;
@@ -119,6 +121,7 @@ export default function ControlsPanel({
             onSpeechVoiceChange={onSpeechVoiceChange}
             availableVoices={availableVoices}
             isSpeechSupported={isSpeechSupported}
+            getJapaneseVoices={getJapaneseVoices}
           />
         );
       default:
