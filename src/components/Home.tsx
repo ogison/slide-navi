@@ -35,6 +35,7 @@ export default function Home() {
     setVolume: setSpeechVolume,
     setRate: setSpeechRate,
     setVoice: setSpeechVoice,
+    getJapaneseVoices,
   } = useSpeechSynthesis();
 
   // Determine the current audio mode.
@@ -179,6 +180,7 @@ export default function Home() {
                 onSpeechVoiceChange={setSpeechVoice}
                 availableVoices={availableVoices}
                 isSpeechSupported={isSpeechSupported}
+                getJapaneseVoices={getJapaneseVoices}
                 activeTab={activeControlsTab}
               />
             )}

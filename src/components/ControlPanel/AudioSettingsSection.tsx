@@ -16,6 +16,7 @@ type AudioSettingsSectionProps = {
   onSpeechVoiceChange: (voiceName: string) => void;
   availableVoices: SpeechSynthesisVoice[];
   isSpeechSupported: boolean;
+  getJapaneseVoices: () => SpeechSynthesisVoice[];
 };
 
 export default function AudioSettingsSection({
@@ -29,6 +30,7 @@ export default function AudioSettingsSection({
   onSpeechVoiceChange,
   availableVoices,
   isSpeechSupported,
+  getJapaneseVoices,
 }: AudioSettingsSectionProps) {
   const handleVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
     const volume = Number(event.target.value) / 100; // 0-100を0-1に変換
@@ -185,6 +187,11 @@ export default function AudioSettingsSection({
                 </option>
               ))}
             </select>
+            <p className={styles.voiceGuidance}>
+              {getJapaneseVoices().length === 0
+                ? "日本語の音声が見つかりません。OSの設定から日本語音声を追加してください。"
+                : "利用可能な音声はOSやブラウザに依存します。"}
+            </p>
           </div>
         </div>
       )}
