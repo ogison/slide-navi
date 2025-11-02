@@ -2,26 +2,32 @@
 
 import type { SlideImage } from "../../types/slides";
 import styles from "./SlideViewer.module.scss";
+import FightAnimation from "./FightAnimation";
 
 type SlideDisplayProps = {
   currentSlide?: SlideImage;
   isLoading: boolean;
+  showFightAnimation?: boolean;
 };
 
 export default function SlideDisplay({
   currentSlide,
   isLoading,
+  showFightAnimation = false,
 }: SlideDisplayProps) {
   return (
     <div className={styles.stage}>
       {isLoading && <p className={styles.loading}>PDFを読み込んでいます…</p>}
 
       {!isLoading && currentSlide && (
-        <img
-          src={currentSlide.dataUrl}
-          alt={`Slide ${currentSlide.pageNumber}`}
-          className={styles.slideImage}
-        />
+        <>
+          <img
+            src={currentSlide.dataUrl}
+            alt={`Slide ${currentSlide.pageNumber}`}
+            className={styles.slideImage}
+          />
+          {showFightAnimation && <FightAnimation />}
+        </>
       )}
 
       {!isLoading && !currentSlide && (

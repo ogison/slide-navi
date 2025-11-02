@@ -16,18 +16,26 @@ export const useMessageGroupControl = ({
 }: UseMessageGroupControlProps) => {
   const [currentGroupIndex, setCurrentGroupIndex] = useState<number>(0);
   const [showClearEffect, setShowClearEffect] = useState<boolean>(false);
+  const [showFightAnimation, setShowFightAnimation] = useState<boolean>(false);
 
   const currentMessageGroups = currentSlideScript.messageGroups;
 
+  const triggerFightAnimation = useCallback(
+    (groupIndex: number) => {
+      if (currentMessageGroups[groupIndex]?.animation === "fight") {
+        setShowFightAnimation(true);
+      } else {
+        setShowFightAnimation(false);
+      }
+    },
+    [currentMessageGroups],
+  );
+
   const displayedMessages = useMemo(() => {
-    // グループベースの表示制御
     if (currentGroupIndex < currentMessageGroups.length) {
       const targetGroup = currentMessageGroups[currentGroupIndex];
-
       return targetGroup ? targetGroup.messages : [];
     }
-
-    // グループインデックスが範囲外の場合は空配列を返す
     return [];
   }, [currentMessageGroups, currentGroupIndex]);
 
@@ -35,24 +43,24 @@ export const useMessageGroupControl = ({
     currentMessageGroups[currentGroupIndex]?.id ||
     `slide-${currentIndex}-group-0`;
 
-  // Reset state when switching slides manually or auto-play starts
   useEffect(() => {
     if (!isAutoPlaying) {
       setCurrentGroupIndex(0);
       setShowClearEffect(false);
+      triggerFightAnimation(0);
       return;
     }
-
-    // 自動再生時は最初のメッセージグループから開始
-    // スライド切り替え時やメッセージ変更時は強制的にリセット
     setCurrentGroupIndex(0);
-    setShowClearEffect(true); // 自動再生時はクリア効果を有効にする
-  }, [isAutoPlaying, currentIndex, currentMessageGroups.length]);
+    triggerFightAnimation(0);
+    setShowClearEffect(true);
+  }, [
+    isAutoPlaying,
+    currentIndex,
+    currentMessageGroups.length,
+    triggerFightAnimation,
+  ]);
 
-  // メッセージグループが変更されたときにタイプライター状態をリセット（手動操作時のみ）
   useEffect(() => {
-    // 手動操作時のみタイプライター状態をリセット
-    // 自動進行中はuseAutoPlayがタイプライター状態を管理する
     if (!isAutoPlaying) {
       onResetTyping();
     }
@@ -66,23 +74,31 @@ export const useMessageGroupControl = ({
   const goToNextGroup = useCallback(() => {
     const totalGroups = currentMessageGroups.length;
     if (currentGroupIndex < totalGroups - 1) {
-      setCurrentGroupIndex(currentGroupIndex + 1);
+      const nextGroupIndex = currentGroupIndex + 1;
+      triggerFightAnimation(nextGroupIndex);
+      setCurrentGroupIndex(nextGroupIndex);
       return true;
     }
     return false;
-  }, [currentGroupIndex, currentMessageGroups.length]);
+  }, [currentGroupIndex, currentMessageGroups, triggerFightAnimation]);
 
   const goToPrevGroup = useCallback(() => {
     if (currentGroupIndex > 0) {
-      setCurrentGroupIndex(currentGroupIndex - 1);
+      const prevGroupIndex = currentGroupIndex - 1;
+      triggerFightAnimation(prevGroupIndex);
+      setCurrentGroupIndex(prevGroupIndex);
       return true;
     }
     return false;
-  }, [currentGroupIndex]);
+  }, [currentGroupIndex, triggerFightAnimation]);
 
-  const setGroupIndex = useCallback((index: number) => {
-    setCurrentGroupIndex(index);
-  }, []);
+  const setGroupIndex = useCallback(
+    (index: number) => {
+      triggerFightAnimation(index);
+      setCurrentGroupIndex(index);
+    },
+    [triggerFightAnimation],
+  );
 
   const getLastGroupIndex = useCallback(() => {
     return Math.max(0, currentMessageGroups.length - 1);
@@ -94,6 +110,7 @@ export const useMessageGroupControl = ({
     messageGroupId,
     currentMessageGroups,
     showClearEffect,
+    showFightAnimation,
     resetGroupState,
     goToNextGroup,
     goToPrevGroup,

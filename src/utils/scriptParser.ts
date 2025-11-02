@@ -145,6 +145,7 @@ const normalizeGroup = (
   let messagesSource: unknown;
   let id: string | undefined;
   let speaker: Speaker | undefined;
+  let animationType: "fight" | undefined;
 
   if (Array.isArray(input)) {
     messagesSource = input;
@@ -154,6 +155,7 @@ const normalizeGroup = (
       speaker?: unknown;
       messages?: unknown;
       lines?: unknown;
+      animation?: unknown;
     };
 
     if (typeof group.id === "string" && group.id.trim().length > 0) {
@@ -161,6 +163,11 @@ const normalizeGroup = (
     }
 
     speaker = normalizeSpeaker(group.speaker);
+
+    // Extract animation property
+    if (group.animation === "fight") {
+      animationType = "fight";
+    }
 
     if (Array.isArray(group.messages)) {
       messagesSource = group.messages;
@@ -186,6 +193,7 @@ const normalizeGroup = (
   return {
     id: id ?? `slide-${slideIndex}-group-${groupIndex}`,
     speaker: speaker ?? DEFAULT_SPEAKER,
+    animation: animationType,
     messages,
   };
 };
