@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createSlideScripts } from "@/utils/scriptParser";
+import { serializeSlideScripts } from "@/utils/scriptSerializer";
 import type { SlideScript } from "@/types/slides";
 
 export const useScriptManager = (totalPages: number) => {
@@ -8,8 +9,16 @@ export const useScriptManager = (totalPages: number) => {
     createSlideScripts("", totalPages),
   );
   const [parseError, setParseError] = useState<string | null>(null);
+  // Flag to prevent circular updates when slideScripts are updated from preview
+  const isUpdatingFromPreviewRef = useRef(false);
 
   useEffect(() => {
+    // Skip parsing if the update came from preview edit to prevent circular updates
+    if (isUpdatingFromPreviewRef.current) {
+      isUpdatingFromPreviewRef.current = false;
+      return;
+    }
+
     if (!scriptInput.trim()) {
       setParseError(null);
       setSlideScripts(createSlideScripts("", totalPages));
@@ -43,10 +52,29 @@ export const useScriptManager = (totalPages: number) => {
     setScriptInput(value);
   }, []);
 
+  const handleSlideScriptsUpdate = useCallback(
+    (updatedSlideScripts: SlideScript[]) => {
+      // Update slideScripts state
+      setSlideScripts(updatedSlideScripts);
+
+      // Serialize to JSON and update scriptInput
+      const serializedJson = serializeSlideScripts(updatedSlideScripts);
+
+      // Set flag to prevent circular update
+      isUpdatingFromPreviewRef.current = true;
+      setScriptInput(serializedJson);
+
+      // Clear any previous parse errors since the update came from valid data
+      setParseError(null);
+    },
+    [],
+  );
+
   return {
     scriptInput,
     slideScripts,
     parseError,
     handleScriptChange,
+    handleSlideScriptsUpdate,
   };
 };
