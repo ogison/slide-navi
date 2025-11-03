@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { SlideScript } from "@/types/slides";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { MessageGroup, SlideScript } from "@/types/slides";
+import { playExplosionSound } from "@/utils/audioGenerator";
 
 interface UseMessageGroupControlProps {
   currentIndex: number;
@@ -16,17 +17,15 @@ export const useMessageGroupControl = ({
 }: UseMessageGroupControlProps) => {
   const [currentGroupIndex, setCurrentGroupIndex] = useState<number>(0);
   const [showClearEffect, setShowClearEffect] = useState<boolean>(false);
-  const [showFightAnimation, setShowFightAnimation] = useState<boolean>(false);
+  const [activeAnimation, setActiveAnimation] =
+    useState<MessageGroup["animation"]>();
+  const lastExplosionKeyRef = useRef<string | null>(null);
 
   const currentMessageGroups = currentSlideScript.messageGroups;
 
-  const triggerFightAnimation = useCallback(
+  const updateActiveAnimation = useCallback(
     (groupIndex: number) => {
-      if (currentMessageGroups[groupIndex]?.animation === "fight") {
-        setShowFightAnimation(true);
-      } else {
-        setShowFightAnimation(false);
-      }
+      setActiveAnimation(currentMessageGroups[groupIndex]?.animation);
     },
     [currentMessageGroups],
   );
@@ -47,17 +46,17 @@ export const useMessageGroupControl = ({
     if (!isAutoPlaying) {
       setCurrentGroupIndex(0);
       setShowClearEffect(false);
-      triggerFightAnimation(0);
+      updateActiveAnimation(0);
       return;
     }
     setCurrentGroupIndex(0);
-    triggerFightAnimation(0);
+    updateActiveAnimation(0);
     setShowClearEffect(true);
   }, [
     isAutoPlaying,
     currentIndex,
     currentMessageGroups.length,
-    triggerFightAnimation,
+    updateActiveAnimation,
   ]);
 
   useEffect(() => {
@@ -66,38 +65,70 @@ export const useMessageGroupControl = ({
     }
   }, [currentGroupIndex, isAutoPlaying, onResetTyping]);
 
+  useEffect(() => {
+    if (activeAnimation !== "explosion") {
+      return;
+    }
+
+    const group = currentMessageGroups[currentGroupIndex];
+    if (!group) {
+      return;
+    }
+
+    const groupId =
+      group.id ?? `slide-${currentIndex}-group-${currentGroupIndex}`;
+    const explosionKey = `${currentIndex}-${groupId}`;
+
+    if (lastExplosionKeyRef.current !== explosionKey) {
+      playExplosionSound();
+      lastExplosionKeyRef.current = explosionKey;
+    }
+  }, [
+    activeAnimation,
+    currentIndex,
+    currentGroupIndex,
+    currentMessageGroups,
+  ]);
+
+  useEffect(() => {
+    if (activeAnimation !== "explosion") {
+      lastExplosionKeyRef.current = null;
+    }
+  }, [activeAnimation]);
+
   const resetGroupState = useCallback(() => {
     setCurrentGroupIndex(0);
     setShowClearEffect(false);
+    setActiveAnimation(undefined);
   }, []);
 
   const goToNextGroup = useCallback(() => {
     const totalGroups = currentMessageGroups.length;
     if (currentGroupIndex < totalGroups - 1) {
       const nextGroupIndex = currentGroupIndex + 1;
-      triggerFightAnimation(nextGroupIndex);
+      updateActiveAnimation(nextGroupIndex);
       setCurrentGroupIndex(nextGroupIndex);
       return true;
     }
     return false;
-  }, [currentGroupIndex, currentMessageGroups, triggerFightAnimation]);
+  }, [currentGroupIndex, currentMessageGroups, updateActiveAnimation]);
 
   const goToPrevGroup = useCallback(() => {
     if (currentGroupIndex > 0) {
       const prevGroupIndex = currentGroupIndex - 1;
-      triggerFightAnimation(prevGroupIndex);
+      updateActiveAnimation(prevGroupIndex);
       setCurrentGroupIndex(prevGroupIndex);
       return true;
     }
     return false;
-  }, [currentGroupIndex, triggerFightAnimation]);
+  }, [currentGroupIndex, updateActiveAnimation]);
 
   const setGroupIndex = useCallback(
     (index: number) => {
-      triggerFightAnimation(index);
+      updateActiveAnimation(index);
       setCurrentGroupIndex(index);
     },
-    [triggerFightAnimation],
+    [updateActiveAnimation],
   );
 
   const getLastGroupIndex = useCallback(() => {
@@ -110,7 +141,7 @@ export const useMessageGroupControl = ({
     messageGroupId,
     currentMessageGroups,
     showClearEffect,
-    showFightAnimation,
+    activeAnimation,
     resetGroupState,
     goToNextGroup,
     goToPrevGroup,
