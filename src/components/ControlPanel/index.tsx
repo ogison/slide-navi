@@ -1,7 +1,7 @@
 import { ChangeEvent } from "react";
 
 import type { AudioSettings } from "@/hooks/useAudioPlayer";
-import type { SpeechSynthesisSettings } from "@/hooks/useSpeechSynthesis";
+import type { SpeechSynthesisSettings } from "@/hooks/useSpeechSettings";
 import type { AudioMode } from "./AudioSettingsSection";
 import type { SlideScript } from "@/types/slides";
 
