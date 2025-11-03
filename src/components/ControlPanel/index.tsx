@@ -33,6 +33,7 @@ export const CONTROL_PANEL_TABS: ReadonlyArray<{
 type ControlsPanelProps = {
   onPdfUpload: (event: ChangeEvent<HTMLInputElement>) => void;
   onScriptChange: (value: string) => void;
+  onSlideScriptsUpdate: (updatedSlideScripts: SlideScript[]) => void;
   onAutoPlayDelayChange: (seconds: number) => void;
   script: string;
   autoPlayDelaySeconds: number;
@@ -57,6 +58,7 @@ type ControlsPanelProps = {
 export default function ControlsPanel({
   onPdfUpload,
   onScriptChange,
+  onSlideScriptsUpdate,
   onAutoPlayDelayChange,
   script,
   autoPlayDelaySeconds,
@@ -99,7 +101,12 @@ export default function ControlsPanel({
           />
         );
       case "preview":
-        return <FormattedScriptView slideScripts={slideScripts} />;
+        return (
+          <FormattedScriptView
+            slideScripts={slideScripts}
+            onChange={onSlideScriptsUpdate}
+          />
+        );
       case "playback":
         return (
           <AutoPlaySection

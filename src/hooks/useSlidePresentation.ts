@@ -19,6 +19,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     slideScripts,
     parseError: scriptError,
     handleScriptChange,
+    handleSlideScriptsUpdate,
   } = useScriptManager(totalPages);
 
   // Typing state
@@ -222,6 +223,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     handleMessageNext,
     jumpTo,
     handleScriptChange,
+    handleSlideScriptsUpdate,
     handleAutoPlayToggle,
     handleAutoPlayDelayChange,
     resetSlideState,

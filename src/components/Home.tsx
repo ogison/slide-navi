@@ -86,6 +86,7 @@ export default function Home() {
               <ControlsPanel
                 onPdfUpload={pdf.actions.handlePdfUpload}
                 onScriptChange={presentation.handleScriptChange}
+                onSlideScriptsUpdate={presentation.handleSlideScriptsUpdate}
                 onAutoPlayDelayChange={presentation.handleAutoPlayDelayChange}
                 script={presentation.scriptInput}
                 autoPlayDelaySeconds={presentation.autoPlayDelaySeconds}
