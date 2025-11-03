@@ -12,6 +12,9 @@ const SUPPORTED_SPEAKERS: ReadonlyArray<Speaker> = ["axolotl", "yagi"];
 const SUPPORTED_TRANSITIONS: ReadonlyArray<TransitionType> = [
   DEFAULT_TRANSITION,
 ];
+const SUPPORTED_ANIMATIONS: ReadonlyArray<
+  NonNullable<MessageGroup["animation"]>
+> = ["fight", "explosion"];
 
 const createBlankScripts = (totalPages: number): SlideScript[] => {
   if (totalPages <= 0) {
@@ -145,7 +148,7 @@ const normalizeGroup = (
   let messagesSource: unknown;
   let id: string | undefined;
   let speaker: Speaker | undefined;
-  let animationType: "fight" | undefined;
+  let animationType: MessageGroup["animation"];
 
   if (Array.isArray(input)) {
     messagesSource = input;
@@ -165,8 +168,17 @@ const normalizeGroup = (
     speaker = normalizeSpeaker(group.speaker);
 
     // Extract animation property
-    if (group.animation === "fight") {
-      animationType = "fight";
+    if (typeof group.animation === "string") {
+      const normalizedAnimation = group.animation.trim().toLowerCase();
+      if (
+        SUPPORTED_ANIMATIONS.includes(
+          normalizedAnimation as NonNullable<MessageGroup["animation"]>,
+        )
+      ) {
+        animationType = normalizedAnimation as NonNullable<
+          MessageGroup["animation"]
+        >;
+      }
     }
 
     if (Array.isArray(group.messages)) {

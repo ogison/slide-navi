@@ -63,7 +63,7 @@ export default function Home() {
             currentGroupIndex={presentation.currentGroupIndex}
             totalGroups={presentation.totalGroups}
             showClearEffect={presentation.showClearEffect}
-            showFightAnimation={presentation.showFightAnimation}
+            activeAnimation={presentation.activeAnimation}
             onTypingComplete={presentation.handleTypingComplete}
             isAutoPlaying={presentation.isAutoPlaying}
             onAutoPlayToggle={presentation.handleAutoPlayToggle}

@@ -1,23 +1,24 @@
 /* eslint-disable @next/next/no-img-element */
 
-import type { SlideImage } from "../../types/slides";
+import type { MessageGroup, SlideImage } from "../../types/slides";
 import styles from "./SlideViewer.module.scss";
 import FightAnimation from "./FightAnimation";
+import ExplosionAnimation from "./ExplosionAnimation";
 
 type SlideDisplayProps = {
   currentSlide?: SlideImage;
   isLoading: boolean;
-  showFightAnimation?: boolean;
+  activeAnimation?: MessageGroup["animation"];
 };
 
 export default function SlideDisplay({
   currentSlide,
   isLoading,
-  showFightAnimation = false,
+  activeAnimation,
 }: SlideDisplayProps) {
   return (
     <div className={styles.stage}>
-      {isLoading && <p className={styles.loading}>PDFを読み込んでいます…</p>}
+      {isLoading && <p className={styles.loading}>Loading PDF...</p>}
 
       {!isLoading && currentSlide && (
         <>
@@ -26,19 +27,20 @@ export default function SlideDisplay({
             alt={`Slide ${currentSlide.pageNumber}`}
             className={styles.slideImage}
           />
-          {showFightAnimation && <FightAnimation />}
+          {activeAnimation === "fight" && <FightAnimation />}
+          {activeAnimation === "explosion" && <ExplosionAnimation />}
         </>
       )}
 
       {!isLoading && !currentSlide && (
         <div className={styles.placeholder}>
           <p className={styles.placeholderTitle}>
-            PDFスライドを読み込むと表示されます
+            Upload a PDF slide to see it here.
           </p>
           <p className={styles.placeholderDescription}>
-            PowerPointは事前にPDFにエクスポートしてください。
+            Export from PowerPoint as PDF before importing.
             <br />
-            ページ単位で描画するため、スライド枚数が多い場合は少し時間がかかります。
+            Rendering happens per page, so large decks may take a moment.
           </p>
         </div>
       )}

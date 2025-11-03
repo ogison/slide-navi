@@ -1,0 +1,317 @@
+.container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff9500 50%, #ffaa00 100%);
+  z-index: 9999;
+}
+
+.explosionBackground {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 200, 100, 0.9) 20%,
+    rgba(255, 150, 50, 0.85) 40%,
+    rgba(255, 100, 0, 0.8) 70%,
+    rgba(200, 50, 0, 0.75) 100%
+  );
+  animation: flashPulsate 0.4s ease-in-out infinite;
+}
+
+.explosionCloud {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90vw;
+  height: 90vh;
+  pointer-events: none;
+}
+
+.mainWave {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 220, 150, 0.95) 15%,
+    rgba(255, 180, 100, 0.9) 30%,
+    rgba(255, 140, 60, 0.85) 50%,
+    rgba(255, 100, 20, 0.6) 70%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  filter: blur(10px);
+  animation: waveExpand 0.35s ease-out infinite alternate;
+}
+
+.fireParticle {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 200, 0.9) 0%,
+    rgba(255, 180, 80, 0.75) 25%,
+    rgba(255, 100, 0, 0.6) 50%,
+    transparent 75%
+  );
+  border-radius: 50%;
+  filter: blur(6px);
+  animation: fireFloat 3s ease-in-out infinite;
+}
+
+.burstEffect {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  animation: burstOut 0.5s ease-out forwards;
+}
+
+.burstCircle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+  }
+
+  &::before {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 1) 0%,
+      rgba(255, 220, 100, 0.95) 20%,
+      rgba(255, 150, 0, 0.8) 50%,
+      rgba(255, 80, 0, 0.6) 75%,
+      transparent 100%
+    );
+    box-shadow:
+      0 0 40px rgba(255, 200, 0, 0.9),
+      0 0 80px rgba(255, 150, 0, 0.7),
+      inset 0 0 30px rgba(255, 255, 255, 0.5);
+  }
+
+  &::after {
+    width: 70%;
+    height: 70%;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 200, 50, 0.8) 40%,
+      transparent 70%
+    );
+  }
+}
+
+.energyRay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 350px;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.9) 10%,
+    rgba(255, 200, 100, 0.85) 30%,
+    rgba(255, 150, 50, 0.8) 60%,
+    rgba(255, 100, 0, 0.7) 80%,
+    transparent 100%
+  );
+  transform-origin: left center;
+  box-shadow:
+    0 0 10px rgba(255, 200, 100, 0.8),
+    0 0 20px rgba(255, 150, 0, 0.6);
+  animation: rayPulse 0.4s ease-in-out infinite;
+}
+
+.explosionText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+
+  span {
+    position: absolute;
+    font-family: "Impact", "Arial Black", sans-serif;
+    font-size: 4.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow:
+      4px 4px 0 #000,
+      -4px -4px 0 #000,
+      4px -4px 0 #000,
+      -4px 4px 0 #000,
+      0 0 25px rgba(255, 200, 0, 0.9),
+      0 0 50px rgba(255, 150, 0, 0.7);
+    animation: explosionTextPop 0.55s ease-out infinite;
+  }
+
+  .boom {
+    top: -120px;
+    left: -180px;
+    color: #ff3300;
+    animation-delay: 0s;
+  }
+
+  .bang {
+    top: 60px;
+    right: -180px;
+    color: #ffaa00;
+    animation-delay: 0.18s;
+  }
+
+  .kaboom {
+    bottom: -80px;
+    left: -120px;
+    color: #ff6600;
+    font-size: 5rem;
+    animation-delay: 0.36s;
+  }
+}
+
+// Animations
+@keyframes flashPulsate {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes waveExpand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.85);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 1;
+  }
+}
+
+@keyframes fireFloat {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(40px, -30px) scale(1.3) rotate(90deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(-30px, 40px) scale(0.85) rotate(180deg);
+    opacity: 0.75;
+  }
+  75% {
+    transform: translate(50px, 20px) scale(1.15) rotate(270deg);
+    opacity: 0.95;
+  }
+}
+
+@keyframes burstOut {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: scale(1.8) rotate(120deg);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.2) rotate(240deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(0.4) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes rayPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: rotate(var(--rotation, 0deg)) scaleX(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(var(--rotation, 0deg)) scaleX(1.1);
+  }
+}
+
+@keyframes explosionTextPop {
+  0% {
+    transform: scale(0) rotate(-60deg);
+    opacity: 0;
+  }
+  45% {
+    transform: scale(1.4) rotate(15deg);
+    opacity: 1;
+  }
+  65% {
+    transform: scale(1.05) rotate(-8deg);
+    opacity: 1;
+  }
+  85% {
+    transform: scale(0.95) rotate(3deg);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(0.85) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+// レスポンシブ対応
+@media (max-width: 768px) {
+  .explosionText span {
+    font-size: 3rem;
+  }
+
+  .explosionText .kaboom {
+    font-size: 3.5rem;
+  }
+
+  .fireParticle {
+    width: 140px;
+    height: 140px;
+  }
+
+  .burstEffect {
+    width: 100px;
+    height: 100px;
+  }
+
+  .energyRay {
+    width: 250px;
+    height: 3px;
+  }
+}

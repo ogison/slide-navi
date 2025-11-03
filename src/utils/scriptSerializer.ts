@@ -11,7 +11,6 @@ export function serializeSlideScripts(slideScripts: SlideScript[]): string {
       title: slide.title,
       transition: slide.transition,
       groups: slide.messageGroups.map((group) => ({
-        ...(group.id && { id: group.id }),
         ...(group.speaker && { speaker: group.speaker }),
         messages: group.messages,
         ...(group.animation && { animation: group.animation }),

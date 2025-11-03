@@ -1,4 +1,9 @@
-﻿import type { SlideImage, MessageLine, Speaker } from "../../types/slides";
+import type {
+  MessageGroup,
+  MessageLine,
+  SlideImage,
+  Speaker,
+} from "../../types/slides";
 import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import styles from "./SlideViewer.module.scss";
 import SlideViewerHeader from "./SlideViewerHeader";
@@ -27,7 +32,7 @@ type SlideViewerProps = {
   slides: SlideImage[];
   onPageJump: (pageIndex: number) => void;
   audioMode: AudioMode;
-  showFightAnimation: boolean;
+  activeAnimation?: MessageGroup["animation"];
   speakText: (text: string) => void;
   stopSpeech: () => void;
   isSpeaking: boolean;
@@ -54,7 +59,7 @@ export default function SlideViewer({
   slides,
   onPageJump,
   audioMode,
-  showFightAnimation = false,
+  activeAnimation,
   speakText,
   stopSpeech,
   isSpeaking,
@@ -78,7 +83,7 @@ export default function SlideViewer({
       <SlideDisplay
         currentSlide={currentSlide}
         isLoading={isLoading}
-        showFightAnimation={showFightAnimation}
+        activeAnimation={activeAnimation}
       />
 
       <SpeakerMessage

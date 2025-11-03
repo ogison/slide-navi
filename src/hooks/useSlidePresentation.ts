@@ -57,7 +57,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     displayedMessages,
     messageGroupId,
     showClearEffect,
-    showFightAnimation,
+    activeAnimation,
     resetGroupState,
     goToNextGroup,
     goToPrevGroup,
@@ -208,7 +208,7 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     slideScripts,
     scriptError,
     showClearEffect,
-    showFightAnimation,
+    activeAnimation,
 
     // Message group data for SlideViewer
     messageGroupId,

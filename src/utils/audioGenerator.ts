@@ -1,126 +1,151 @@
 /**
- * 音声ファイル（message-type.mp3）を使用したタイプライター音の再生ユーティリティ
+ * Utility helpers for cached audio playback.
  */
 
-// 音声ファイルのキャッシュ
-let audioCache: HTMLAudioElement | null = null;
-let isAudioLoaded = false;
-
-// 再生中の音声を追跡
-const activeAudios = new Set<HTMLAudioElement>();
-
-/**
- * 音声ファイルをプリロード
- */
-const preloadAudio = (): void => {
-  if (!audioCache && typeof window !== "undefined") {
-    audioCache = new Audio("/sounds/message-type.mp3");
-    audioCache.preload = "auto";
-
-    // ロード完了時のハンドラ
-    audioCache.addEventListener(
-      "canplaythrough",
-      () => {
-        isAudioLoaded = true;
-      },
-      { once: true },
-    );
-
-    // エラーハンドラ
-    audioCache.addEventListener("error", (e) => {
-      console.warn("Failed to load message-type.mp3:", e);
-      isAudioLoaded = false;
-    });
-  }
+type AudioResource = {
+  cache: HTMLAudioElement | null;
+  isLoaded: boolean;
 };
 
-// 初回アクセス時にプリロード
+const TYPEWRITER_SRC = "/sounds/message-type.mp3";
+const EXPLOSION_SRC = "/sounds/explosion.mp3";
+
+const resources = new Map<string, AudioResource>();
+const activeInstances = new Map<string, Set<HTMLAudioElement>>();
+
+const ensureResource = (src: string): AudioResource => {
+  let resource = resources.get(src);
+  if (!resource) {
+    resource = { cache: null, isLoaded: false };
+    resources.set(src, resource);
+  }
+  return resource;
+};
+
+const ensureActiveSet = (src: string): Set<HTMLAudioElement> => {
+  let set = activeInstances.get(src);
+  if (!set) {
+    set = new Set<HTMLAudioElement>();
+    activeInstances.set(src, set);
+  }
+  return set;
+};
+
+const clampVolume = (volume: number): number => {
+  return Math.max(0, Math.min(1, volume));
+};
+
+const preloadAudio = (src: string): void => {
+  if (typeof window === "undefined") return;
+
+  const resource = ensureResource(src);
+  if (resource.cache) return;
+
+  const audio = new Audio(src);
+  audio.preload = "auto";
+
+  audio.addEventListener(
+    "canplaythrough",
+    () => {
+      resource.isLoaded = true;
+    },
+    { once: true },
+  );
+
+  audio.addEventListener("error", (event) => {
+    console.warn(`Failed to load ${src}:`, event);
+    resource.isLoaded = false;
+  });
+
+  resource.cache = audio;
+};
+
 if (typeof window !== "undefined") {
-  preloadAudio();
+  preloadAudio(TYPEWRITER_SRC);
+  preloadAudio(EXPLOSION_SRC);
 }
 
-/**
- * message-type.mp3を再生
- */
-export const playTypewriterSound = (volume: number = 0.3): void => {
-  try {
-    // 音声ファイルがロードされていない場合はプリロード
-    if (!audioCache || !isAudioLoaded) {
-      preloadAudio();
+const registerEndHandlers = (
+  element: HTMLAudioElement,
+  instances: Set<HTMLAudioElement>,
+): void => {
+  const cleanup = () => {
+    instances.delete(element);
+  };
 
-      // 初回のみ、新しいインスタンスで即座に再生を試みる
-      const audio = new Audio("/sounds/message-type.mp3");
-      audio.volume = Math.max(0, Math.min(1, volume));
-
-      // 再生中の音声として追跡
-      activeAudios.add(audio);
-
-      // 再生終了後に追跡から削除
-      audio.addEventListener("ended", () => {
-        activeAudios.delete(audio);
-        audio.remove();
-      });
-
-      audio.play().catch((err) => {
-        console.warn("Failed to play message-type.mp3:", err);
-        activeAudios.delete(audio);
-      });
-      return;
-    }
-
-    // クローンを作成して複数の音を重ねて再生できるようにする
-    const audioClone = audioCache.cloneNode() as HTMLAudioElement;
-    audioClone.volume = Math.max(0, Math.min(1, volume));
-
-    // 再生中の音声として追跡
-    activeAudios.add(audioClone);
-
-    // 再生終了後にメモリを解放
-    audioClone.addEventListener("ended", () => {
-      activeAudios.delete(audioClone);
-      audioClone.remove();
-    });
-
-    audioClone.play().catch((err) => {
-      console.warn("Failed to play message-type.mp3:", err);
-      activeAudios.delete(audioClone);
-    });
-  } catch (error) {
-    console.warn("Failed to play typewriter sound:", error);
-  }
+  element.addEventListener("ended", cleanup, { once: true });
+  element.addEventListener("error", cleanup, { once: true });
 };
 
-/**
- * すべての再生中のタイプライター音を停止
- */
-export const stopAllTypewriterSounds = (): void => {
-  activeAudios.forEach((audio) => {
+const playCachedSound = (src: string, volume: number): void => {
+  if (typeof window === "undefined") return;
+
+  const safeVolume = clampVolume(volume);
+  const resource = ensureResource(src);
+  const instances = ensureActiveSet(src);
+
+  const startPlayback = (audio: HTMLAudioElement) => {
+    audio.volume = safeVolume;
+    instances.add(audio);
+    registerEndHandlers(audio, instances);
+
+    audio.play().catch((error) => {
+      console.warn(`Failed to play ${src}:`, error);
+      instances.delete(audio);
+    });
+  };
+
+  if (!resource.cache || !resource.isLoaded) {
+    preloadAudio(src);
+    startPlayback(new Audio(src));
+    return;
+  }
+
+  const clone = resource.cache.cloneNode() as HTMLAudioElement;
+  startPlayback(clone);
+};
+
+const stopAllForSrc = (src: string): void => {
+  const instances = activeInstances.get(src);
+  if (!instances) return;
+
+  instances.forEach((audio) => {
     audio.pause();
     audio.currentTime = 0;
-    activeAudios.delete(audio);
   });
-  activeAudios.clear();
+
+  instances.clear();
 };
 
-/**
- * あつまれどうぶつの森風の音（互換性のため残す）
- * 実際にはmessage-type.mp3を再生
- */
+export const playTypewriterSound = (volume: number = 0.3): void => {
+  playCachedSound(TYPEWRITER_SRC, volume);
+};
+
+export const stopAllTypewriterSounds = (): void => {
+  stopAllForSrc(TYPEWRITER_SRC);
+};
+
 export const playAnimalCrossingSound = (volume: number = 0.3): void => {
   playTypewriterSound(volume);
 };
 
-/**
- * 音声リソースをクリーンアップ
- */
-export const cleanupAudioContext = (): void => {
-  // すべての再生中の音声を停止
-  stopAllTypewriterSounds();
+export const playExplosionSound = (volume: number = 0.7): void => {
+  playCachedSound(EXPLOSION_SRC, volume);
+};
 
-  if (audioCache) {
-    audioCache.pause();
-    audioCache.src = "";
-    audioCache = null;
-    isAudioLoaded = false;
-  }
+export const cleanupAudioContext = (): void => {
+  stopAllForSrc(TYPEWRITER_SRC);
+  stopAllForSrc(EXPLOSION_SRC);
+
+  resources.forEach((resource) => {
+    if (resource.cache) {
+      resource.cache.pause();
+      resource.cache.src = "";
+    }
+    resource.cache = null;
+    resource.isLoaded = false;
+  });
+
+  resources.clear();
+  activeInstances.clear();
 };
