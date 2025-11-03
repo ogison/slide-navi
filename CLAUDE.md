@@ -31,7 +31,7 @@ This is a **SlideNavi** application - a PDF slide presenter with speaker notes a
 
 - **`src/components/ControlsPanel.tsx`**: Control interface providing:
   - PDF upload functionality
-  - Script editor with markdown-style formatting
+  - Script editor with JSON formatting (see `docs/script-input-guide.md`)
   - Auto-play controls with configurable interval timing
   - Page jump navigation for loaded slides
   - Audio settings (volume, enable/disable)
@@ -44,11 +44,14 @@ The application uses a modular hook architecture with specialized hooks in `src/
   - Orchestrates all sub-hooks (script, typing, navigation, message groups, auto-play)
   - Manages complex interactions between different concerns
   - Provides unified interface for Home component
+  - **Important**: Initializes `isAutoPlaying` at the top level to avoid circular dependencies between hooks
+  - **Initialization order matters**: Script Manager → Typing State → Slide Navigation → Message Group Control → Auto-play
 
 - **`useScriptManager.ts`**: Script parsing and management
-  - Parses script input using `createSlideScripts`
+  - Parses script input using `createSlideScripts` (JSON format only)
   - Maps scripts to slides based on page count
   - Provides script state and update handlers
+  - Error recovery: retains previous valid scripts on parse errors if page count matches
 
 - **`useTypingState.ts`**: Typewriter effect state
   - Tracks typing completion status
@@ -62,15 +65,19 @@ The application uses a modular hook architecture with specialized hooks in `src/
 
 - **`useMessageGroupControl.ts`**: Message group display control
   - Manages which message group is currently visible
-  - Controls clear effect animations between groups
+  - Controls clear effect animations between groups (only during auto-play, not manual navigation)
   - Provides group navigation (next/prev)
   - Integrates with auto-play mode
+  - `showClearEffect` is true only when entering a new group with auto-play enabled AND there was a previous message
+  - Manages fight animation triggers based on group `animation` property
 
 - **`useAutoPlay.ts`**: Auto-play functionality
   - Automatic slide and message group advancement
   - Configurable delay between transitions
   - Coordinates with typing state (waits for typing to complete)
-  - Handles pending slide transitions
+  - Uses `pendingSlideTransition` state machine flag to track whether next action should advance group or slide
+  - Flow: Wait for `isTypingComplete` → Delay for configured seconds → Check `pendingSlideTransition` → Execute next action
+  - Manual navigation stops auto-play and bypasses the state machine
 
 - **`usePdfUpload.ts`**: PDF file handling
   - File upload and validation (PDF only)
@@ -78,40 +85,88 @@ The application uses a modular hook architecture with specialized hooks in `src/
   - Loading state and error handling
 
 - **`useAudioPlayer.ts`**: Audio playback management
-  - Typewriter sound effects during message display
-  - Completion sound when typing finishes
+  - Typewriter sound effects during message display (plays every 90ms, double the typing rate)
+  - Uses audio file cloning pattern for overlapping sounds (`/sounds/message-type.mp3`)
   - Volume control and enable/disable toggle
-  - Settings persistence via localStorage
+  - Settings persistence via localStorage (`slide-navi-audio-settings`)
+  - Hydration safety: uses `isInitializedRef` to prevent double-loading settings
+
+- **`useSpeechSynthesis.ts`**: Text-to-speech functionality
+  - Web Speech API integration with browser compatibility check
+  - Japanese voice auto-selection with fallback
+  - Settings: enabled, volume (0-1), rate (0.5-2.0), pitch (0.5-2.0), voiceName
+  - Polls speaking state every 50ms for accurate completion detection (onend events can be delayed)
+  - Settings persistence via localStorage (`slide-navi-speech-settings`)
 
 ### Key Features
 
 #### Script System
 
-Scripts use a markdown-like format with specific parsing rules:
+Scripts use **JSON format** (not markdown). See `docs/script-input-guide.md` for complete specifications.
 
-- **Slide separation**: Lines starting with `# ` mark the beginning of a new slide
-  - Example: `# 1ページ目：タイトル`
-  - The text after `# ` becomes the slide title
+**JSON Structure:**
 
-- **Message groups**: Empty lines within a slide separate message groups
-  - Each group displays as a separate typewriter animation
-  - Auto-play advances through groups before moving to next slide
-  - Example:
+- Root can be an array of slide objects OR an object with `slides` property
+- Each slide has: `title`, `transition`, and message groups
 
-    ```
-    # Slide 1
-    First message group
+**Flexible Property Names:**
 
-    Second message group
-    ```
+- Groups: `groups` (recommended) OR `messageGroups` OR `messages`
+- Messages within groups: array of strings OR array of `{text: string}` objects
 
-- **Auto text splitting**: Long lines (>40 chars) are automatically split at punctuation marks (。、？！?,) for better readability
+**Slide Object Fields:**
+
+- `title` (string): Slide heading displayed in viewer
+- `transition` (string or object): Transition type, currently only supports `"immediate"`
+- `groups`/`messageGroups`/`messages` (array): Message groups for this slide
+
+**Group Object Fields:**
+
+- `id` (optional string): Identifier for group (useful for script version control)
+- `speaker` (optional string): Character name - `"axolotl"` (ウーパー君, default) or `"yagi"` (やぎ君)
+- `messages` (required array): Array of message strings or `{text: string}` objects
+- `animation` (optional string): Set to `"fight"` to trigger battle animation
+
+**Processing Rules:**
+
+- Empty groups are silently filtered out
+- Parse errors are caught; previous valid scripts retained if page count matches
+- Multiple message groups per slide: each group displays as separate typewriter animation
+- Auto-play advances through groups before moving to next slide
+
+**Example:**
+
+```json
+{
+  "slides": [
+    {
+      "title": "Introduction",
+      "transition": "immediate",
+      "groups": [
+        {
+          "speaker": "axolotl",
+          "messages": ["Hello!", "Welcome to the presentation."]
+        },
+        {
+          "speaker": "yagi",
+          "messages": ["Let's begin!"],
+          "animation": "fight"
+        }
+      ]
+    }
+  ]
+}
+```
 
 #### Typewriter Effect
 
-- Messages animate character-by-character at 45ms per character
-- Integrated with audio feedback (typewriter sounds)
-- Clear effect animation when transitioning between message groups in auto-play mode
+- Messages animate character-by-character at 45ms per character (configurable via `TYPEWRITER_DELAY_MS`)
+- Integrated with audio feedback (typewriter sounds play every 90ms)
+- Clear effect animation (400ms duration) when transitioning between message groups in auto-play mode
+- Delays before typing starts:
+  - New group: 300ms (`NEW_GROUP_DELAY_MS`)
+  - Same group with new message: 200ms (`SAME_GROUP_DELAY_MS`)
+- **Disabled mode**: When speech synthesis is active, typewriter effect is disabled and text displays immediately
 - Completion callback triggers next auto-play action
 
 #### Auto-play Behavior
@@ -122,11 +177,39 @@ Scripts use a markdown-like format with specific parsing rules:
 4. Advances to next message group (or next slide if no more groups)
 5. Repeats until end of presentation
 
+#### Audio Mode Coordination
+
+The application has three mutually exclusive audio modes managed in `Home.tsx`:
+
+1. **Typewriter mode** (`audioMode: "typewriter"`):
+   - Plays typewriter sound effects during character-by-character animation
+   - Uses `useAudioPlayer` hook
+   - Typewriter effect enabled (45ms per character)
+
+2. **Speech synthesis mode** (`audioMode: "speech"`):
+   - Uses Web Speech API for text-to-speech
+   - Uses `useSpeechSynthesis` hook
+   - Typewriter effect **disabled** (text displays immediately)
+   - Speech completion triggers `onTypingComplete` callback
+
+3. **Silent mode** (`audioMode: "none"`):
+   - No audio playback
+   - Typewriter effect enabled (visual only)
+
+**Important**: Only ONE audio system should be active at a time. Enabling one disables the other. In `SpeakerMessage`, effective callbacks change based on `audioMode` - speech mode uses no-op sound functions while routing completion events through speech synthesis.
+
 #### PDF Processing
 
 - Client-side PDF rendering using PDF.js canvas API
 - Each page rendered as data URL and stored in memory
 - PowerPoint files must be converted to PDF before upload
+
+#### Fight Animation
+
+- Triggered when a message group has `animation: "fight"` in the JSON script
+- Managed by `useMessageGroupControl.triggerFightAnimation()`
+- Rendered by `FightAnimation.tsx` component
+- Displays battle-style visual effect during message group display
 
 ## Development Commands
 
@@ -170,8 +253,52 @@ Husky automatically runs on commits:
 
 ## Important Implementation Notes
 
+### State Management
+
 - All state management is done via React hooks - no external state management library
 - The hook composition pattern in `useSlidePresentation` requires careful dependency management to avoid circular dependencies
 - Message groups are identified by unique IDs (`slide-{index}-group-{groupIndex}`) to track transitions
 - Auto-play uses `isTypingComplete` flag to coordinate timing between typewriter effect and slide/group transitions
-- Audio settings are persisted to localStorage to maintain user preferences across sessions
+
+### Storage Persistence Pattern
+
+- Audio and speech settings are persisted to localStorage
+- Storage keys: `slide-navi-audio-settings`, `slide-navi-speech-settings`
+- Hydration safety: uses `isInitializedRef` pattern to prevent double-loading during React hydration
+- Settings are only saved AFTER initialization completes
+- Includes migration logic for old storage key formats
+
+### Timing Constants
+
+Key timing values defined in `src/constants/`:
+
+- `TYPEWRITER_DELAY_MS = 45` - Milliseconds per character for typewriter effect
+- `AUDIO_PLAY_INTERVAL_MS = 90` - How often typewriter sound plays (double the typing rate)
+- `ICON_ANIMATION_INTERVAL_MS = 150` - Speaker icon animation interval
+- `CLEAR_EFFECT_DURATION_MS = 400` - Duration of clear effect animation between groups
+- `NEW_GROUP_DELAY_MS = 300` - Delay before starting to type in a new message group
+- `SAME_GROUP_DELAY_MS = 200` - Delay before typing continues in the same group
+
+### Component Data Flow
+
+```
+Home.tsx (orchestrator)
+├── Manages audioMode state (typewriter/speech/none)
+├── Integrates useSlidePresentation, useAudioPlayer, useSpeechSynthesis
+├── Passes audio settings and callbacks to children
+│
+├─→ SlideViewer
+│   ├── Receives: slides, currentIndex, title, messages, speaker, messageGroupId
+│   ├── Receives: showClearEffect, showFightAnimation flags
+│   │
+│   └─→ SpeakerMessage
+│       ├── Integrates useTypewriterEffect with disabled flag based on audioMode
+│       ├── Adapts callbacks: typewriter sounds OR speech synthesis based on audioMode
+│       └── Triggers onTypingComplete when animation/speech finishes
+│
+└─→ ControlPanel (conditionally rendered by tab)
+    ├── PDF upload section
+    ├── Script editor with JSON parsing and error display
+    ├── Auto-play controls
+    └── Audio settings (mode, volume, rate, pitch)
+```

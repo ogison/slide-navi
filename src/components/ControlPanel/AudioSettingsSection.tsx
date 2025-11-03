@@ -1,6 +1,6 @@
 import { ChangeEvent } from "react";
 import type { AudioSettings } from "@/hooks/useAudioPlayer";
-import type { SpeechSynthesisSettings } from "@/hooks/useSpeechSynthesis";
+import type { SpeechSynthesisSettings } from "@/hooks/useSpeechSettings";
 import styles from "./ControlsPanel.module.scss";
 
 export type AudioMode = "none" | "typewriter" | "speech";

@@ -28,6 +28,9 @@ type SlideViewerProps = {
   onPageJump: (pageIndex: number) => void;
   audioMode: AudioMode;
   showFightAnimation: boolean;
+  speakText: (text: string) => void;
+  stopSpeech: () => void;
+  isSpeaking: boolean;
 };
 
 export default function SlideViewer({
@@ -52,6 +55,9 @@ export default function SlideViewer({
   onPageJump,
   audioMode,
   showFightAnimation = false,
+  speakText,
+  stopSpeech,
+  isSpeaking,
 }: SlideViewerProps) {
   return (
     <section className={styles.container}>
@@ -83,6 +89,9 @@ export default function SlideViewer({
         onTypingComplete={onTypingComplete}
         audioMode={audioMode}
         isAutoPlaying={isAutoPlaying}
+        speakText={speakText}
+        stopSpeech={stopSpeech}
+        isSpeaking={isSpeaking}
       />
 
       <PageJumpSection

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import type { MessageLine, Speaker } from "@/types/slides";
 import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
 import { useTypewriterEffect } from "@/hooks/speakerMessage/useTypewriterEffect";
 import { useSpeakerIconAnimation } from "@/hooks/speakerMessage/useSpeakerIconAnimation";
 import SpeakerIcon from "./SpeakerIcon";
@@ -17,6 +16,9 @@ type SpeakerMessageProps = {
   onTypingComplete?: () => void;
   audioMode: AudioMode;
   isAutoPlaying: boolean;
+  speakText: (text: string) => void;
+  stopSpeech: () => void;
+  isSpeaking: boolean;
 };
 
 const speakerSettings = {
@@ -44,14 +46,14 @@ export default function SpeakerMessage({
   onTypingComplete,
   audioMode,
   isAutoPlaying,
+  speakText,
+  stopSpeech,
+  isSpeaking,
 }: SpeakerMessageProps) {
   const { name, baseIcon, talkingIcon } = speakerSettings[speaker];
 
   // Audio player integration (typewriter sound)
   const { startTypingSound, stopTypingSound } = useAudioPlayer();
-
-  // Speech synthesis integration (text-to-speech)
-  const { speak, stop: stopSpeech, isSpeaking } = useSpeechSynthesis();
 
   // 前回のaudioModeを保存（audioMode変更検出用）
   const prevAudioModeRef = useRef<AudioMode>(audioMode);
@@ -119,14 +121,14 @@ export default function SpeakerMessage({
     if (audioMode === "speech" && fullMessage) {
       // 少し遅延させて音声読み上げを開始（停止処理の後に）
       const timeoutId = setTimeout(() => {
-        speak(fullMessage);
+        speakText(fullMessage);
       }, 100);
 
       return () => {
         clearTimeout(timeoutId);
       };
     }
-  }, [audioMode, messageGroupId, fullMessage, speak, isAutoPlaying]);
+  }, [audioMode, messageGroupId, fullMessage, speakText, isAutoPlaying]);
 
   // クリアエフェクトが開始されたときに音声を停止
   useEffect(() => {

@@ -11,7 +11,8 @@ import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import { usePdfUpload } from "@/hooks/usePdfUpload";
 import { useSlidePresentation } from "@/hooks/useSlidePresentation";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useSpeechSynthesis } from "@/hooks/useSpeechSynthesis";
+import { useSpeechSettings } from "@/hooks/useSpeechSettings";
+import { useSpeechPlayback } from "@/hooks/useSpeechPlayback";
 import { SCRIPT_PLACEHOLDER } from "@/constants";
 import styles from "./Home.module.scss";
 
@@ -29,14 +30,20 @@ export default function Home() {
 
   const {
     settings: speechSettings,
-    isSupported: isSpeechSupported,
-    availableVoices,
-    toggleSpeech,
+    toggleEnabled: toggleSpeech,
     setVolume: setSpeechVolume,
     setRate: setSpeechRate,
-    setVoice: setSpeechVoice,
+    setVoiceName: setSpeechVoice,
+  } = useSpeechSettings();
+
+  const {
+    isSupported: isSpeechSupported,
+    availableVoices,
     getJapaneseVoices,
-  } = useSpeechSynthesis();
+    speak: speakText,
+    stop: stopSpeech,
+    isSpeaking,
+  } = useSpeechPlayback(speechSettings);
 
   // Determine the current audio mode.
   const audioMode: AudioMode = useMemo(() => {
@@ -152,6 +159,9 @@ export default function Home() {
             slides={slides}
             onPageJump={jumpTo}
             audioMode={audioMode}
+            speakText={speakText}
+            stopSpeech={stopSpeech}
+            isSpeaking={isSpeaking}
           />
 
           <aside
