@@ -33,8 +33,7 @@ export const usePdfUpload = () => {
 
         setSlides(renderedSlides);
         setDocumentName(file.name);
-      } catch (pdfError) {
-        console.error(pdfError);
+      } catch {
         setError(
           "PDFの読み込みに失敗しました。ファイルが破損していないか確認してください。",
         );
@@ -47,19 +46,21 @@ export const usePdfUpload = () => {
     [],
   );
 
-  const resetPdfState = useCallback(() => {
-    setSlides([]);
-    setDocumentName("サンプル資料.pdf");
-    setError(null);
-  }, []);
-
   return {
+    // PDF data
     slides,
     documentName,
-    isLoading,
-    error,
-    handlePdfUpload,
-    resetPdfState,
     totalPages: slides.length,
+
+    // State
+    state: {
+      isLoading,
+      error,
+    },
+
+    // Actions
+    actions: {
+      handlePdfUpload,
+    },
   };
 };

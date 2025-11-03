@@ -1,117 +1,36 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import HeaderSection from "../components/HeaderSection";
+import { useCallback, useState } from "react";
+import HeaderSection from "./Header/HeaderSection";
 import SlideViewer from "./SlideViewer";
 import ControlsPanel, {
   CONTROL_PANEL_TABS,
   type ControlsPanelTab,
 } from "@/components/ControlPanel";
-import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import { usePdfUpload } from "@/hooks/usePdfUpload";
 import { useSlidePresentation } from "@/hooks/useSlidePresentation";
-import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import { useSpeechSettings } from "@/hooks/useSpeechSettings";
-import { useSpeechPlayback } from "@/hooks/useSpeechPlayback";
-import { SCRIPT_PLACEHOLDER } from "@/constants";
+import { useAudioSystem } from "@/hooks/useAudioSystem";
 import styles from "./Home.module.scss";
 
 export default function Home() {
-  const {
-    slides,
-    documentName,
-    isLoading,
-    error: pdfError,
-    handlePdfUpload,
-    totalPages,
-  } = usePdfUpload();
+  // ===========================
+  // PDF管理
+  // ===========================
+  const pdf = usePdfUpload();
 
-  const { settings: audioSettings, toggleAudio, setVolume } = useAudioPlayer();
+  // ===========================
+  // 音声システム (typewriter + speech統合)
+  // ===========================
+  const audio = useAudioSystem();
 
-  const {
-    settings: speechSettings,
-    toggleEnabled: toggleSpeech,
-    setVolume: setSpeechVolume,
-    setRate: setSpeechRate,
-    setVoiceName: setSpeechVoice,
-  } = useSpeechSettings();
+  // ===========================
+  // スライドプレゼンテーション
+  // ===========================
+  const presentation = useSlidePresentation(pdf.slides);
 
-  const {
-    isSupported: isSpeechSupported,
-    availableVoices,
-    getJapaneseVoices,
-    speak: speakText,
-    stop: stopSpeech,
-    isSpeaking,
-  } = useSpeechPlayback(speechSettings);
-
-  // Determine the current audio mode.
-  const audioMode: AudioMode = useMemo(() => {
-    if (audioSettings.enabled) return "typewriter";
-    if (speechSettings.enabled) return "speech";
-    return "none";
-  }, [audioSettings.enabled, speechSettings.enabled]);
-
-  // Toggle audio integrations when the requested mode changes.
-  const handleAudioModeChange = useCallback(
-    (mode: AudioMode) => {
-      switch (mode) {
-        case "typewriter":
-          if (!audioSettings.enabled) toggleAudio();
-          if (speechSettings.enabled) toggleSpeech();
-          break;
-        case "speech":
-          if (audioSettings.enabled) toggleAudio();
-          if (!speechSettings.enabled) toggleSpeech();
-          break;
-        case "none":
-          if (audioSettings.enabled) toggleAudio();
-          if (speechSettings.enabled) toggleSpeech();
-          break;
-      }
-    },
-    [audioSettings.enabled, speechSettings.enabled, toggleAudio, toggleSpeech],
-  );
-
-  const {
-    currentIndex,
-    scriptInput,
-    isAutoPlaying,
-    autoPlayDelaySeconds,
-    currentSlide,
-    currentTitle,
-    displayedMessages,
-    messageGroupId,
-    handleMessagePrev,
-    handleMessageNext,
-    jumpTo,
-    handleScriptChange,
-    handleAutoPlayToggle,
-    handleAutoPlayDelayChange,
-    resetSlideState,
-    slideScripts,
-    scriptError,
-    showClearEffect,
-    showFightAnimation,
-    handleTypingComplete,
-  } = useSlidePresentation(slides);
-
-  // Initialize script placeholder when slides are loaded for the first time
-  useEffect(() => {
-    if (slides.length > 0 && !scriptInput.trim()) {
-      handleScriptChange(SCRIPT_PLACEHOLDER);
-    }
-  }, [slides.length, scriptInput, handleScriptChange]);
-
-  // Reset slide state when new PDF is loaded
-  useEffect(() => {
-    if (slides.length > 0) {
-      resetSlideState();
-    }
-  }, [slides.length, resetSlideState]);
-
-  const error = pdfError;
-
+  // ===========================
+  // UI状態管理
+  // ===========================
   const [activeControlsTab, setActiveControlsTab] =
     useState<ControlsPanelTab | null>(null);
 
@@ -121,47 +40,39 @@ export default function Home() {
 
   const isControlsOpen = activeControlsTab !== null;
 
-  const currentGroupIndex =
-    slideScripts[currentIndex]?.messageGroups?.findIndex(
-      (group) => group.id === messageGroupId,
-    ) ?? 0;
-
-  const currentSpeaker =
-    slideScripts[currentIndex]?.messageGroups?.[currentGroupIndex]?.speaker ??
-    "axolotl";
-
-  const totalGroups = slideScripts[currentIndex]?.messageGroups?.length ?? 0;
-
+  // ===========================
+  // レンダリング
+  // ===========================
   return (
     <div className={styles.page}>
       <HeaderSection />
       <main className={styles.main}>
         <div className={styles.viewerArea}>
           <SlideViewer
-            currentSlide={currentSlide}
-            totalPages={totalPages}
-            currentIndex={currentIndex}
-            documentName={documentName}
-            isLoading={isLoading}
-            speaker={currentSpeaker}
-            messages={displayedMessages}
-            slideTitle={currentTitle}
-            messageGroupId={messageGroupId}
-            onMessagePrev={handleMessagePrev}
-            onMessageNext={handleMessageNext}
-            currentGroupIndex={currentGroupIndex}
-            totalGroups={totalGroups}
-            showClearEffect={showClearEffect}
-            showFightAnimation={showFightAnimation}
-            onTypingComplete={handleTypingComplete}
-            isAutoPlaying={isAutoPlaying}
-            onAutoPlayToggle={handleAutoPlayToggle}
-            slides={slides}
-            onPageJump={jumpTo}
-            audioMode={audioMode}
-            speakText={speakText}
-            stopSpeech={stopSpeech}
-            isSpeaking={isSpeaking}
+            currentSlide={presentation.currentSlide}
+            totalPages={pdf.totalPages}
+            currentIndex={presentation.currentIndex}
+            documentName={pdf.documentName}
+            isLoading={pdf.state.isLoading}
+            speaker={presentation.currentSpeaker}
+            messages={presentation.displayedMessages}
+            slideTitle={presentation.currentTitle}
+            messageGroupId={presentation.messageGroupId}
+            onMessagePrev={presentation.handleMessagePrev}
+            onMessageNext={presentation.handleMessageNext}
+            currentGroupIndex={presentation.currentGroupIndex}
+            totalGroups={presentation.totalGroups}
+            showClearEffect={presentation.showClearEffect}
+            showFightAnimation={presentation.showFightAnimation}
+            onTypingComplete={presentation.handleTypingComplete}
+            isAutoPlaying={presentation.isAutoPlaying}
+            onAutoPlayToggle={presentation.handleAutoPlayToggle}
+            slides={pdf.slides}
+            onPageJump={presentation.jumpTo}
+            audioMode={audio.audioMode}
+            speakText={audio.speech.speak}
+            stopSpeech={audio.speech.stop}
+            isSpeaking={audio.speech.isSpeaking}
           />
 
           <aside
@@ -173,26 +84,26 @@ export default function Home() {
           >
             {activeControlsTab && (
               <ControlsPanel
-                onPdfUpload={handlePdfUpload}
-                onScriptChange={handleScriptChange}
-                onAutoPlayDelayChange={handleAutoPlayDelayChange}
-                script={scriptInput}
-                autoPlayDelaySeconds={autoPlayDelaySeconds}
-                totalPages={totalPages}
-                error={error}
-                scriptError={scriptError}
-                slideScripts={slideScripts}
-                audioMode={audioMode}
-                onAudioModeChange={handleAudioModeChange}
-                audioSettings={audioSettings}
-                onVolumeChange={setVolume}
-                speechSettings={speechSettings}
-                onSpeechVolumeChange={setSpeechVolume}
-                onSpeechRateChange={setSpeechRate}
-                onSpeechVoiceChange={setSpeechVoice}
-                availableVoices={availableVoices}
-                isSpeechSupported={isSpeechSupported}
-                getJapaneseVoices={getJapaneseVoices}
+                onPdfUpload={pdf.actions.handlePdfUpload}
+                onScriptChange={presentation.handleScriptChange}
+                onAutoPlayDelayChange={presentation.handleAutoPlayDelayChange}
+                script={presentation.scriptInput}
+                autoPlayDelaySeconds={presentation.autoPlayDelaySeconds}
+                totalPages={pdf.totalPages}
+                error={pdf.state.error}
+                scriptError={presentation.scriptError}
+                slideScripts={presentation.slideScripts}
+                audioMode={audio.audioMode}
+                onAudioModeChange={audio.handleAudioModeChange}
+                audioSettings={audio.typewriter.settings}
+                onVolumeChange={audio.typewriter.setVolume}
+                speechSettings={audio.speech.settings}
+                onSpeechVolumeChange={audio.speech.setVolume}
+                onSpeechRateChange={audio.speech.setRate}
+                onSpeechVoiceChange={audio.speech.setVoiceName}
+                availableVoices={audio.speech.availableVoices}
+                isSpeechSupported={audio.speech.isSupported}
+                getJapaneseVoices={audio.speech.getJapaneseVoices}
                 activeTab={activeControlsTab}
               />
             )}

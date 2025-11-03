@@ -1,10 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { SlideImage } from "@/types/slides";
 import { useScriptManager } from "./slidePresentation/useScriptManager";
 import { useTypingState } from "./slidePresentation/useTypingState";
 import { useSlideNavigation } from "./slidePresentation/useSlideNavigation";
 import { useMessageGroupControl } from "./slidePresentation/useMessageGroupControl";
 import { useAutoPlay } from "./slidePresentation/useAutoPlay";
+import { SCRIPT_PLACEHOLDER } from "@/constants";
 
 export const useSlidePresentation = (slides: SlideImage[]) => {
   const totalPages = slides.length;
@@ -172,6 +173,27 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
     setTypingComplete(true);
   }, [resetIndex, resetGroupState, stopAutoPlay, setTypingComplete]);
 
+  // 派生状態: 現在のグループのスピーカー情報
+  const currentSpeaker =
+    currentMessageGroups[currentGroupIndex]?.speaker ?? "axolotl";
+
+  // 派生状態: 現在のスライドのグループ数
+  const totalGroups = currentMessageGroups.length;
+
+  // Initialize script placeholder when slides are loaded for the first time
+  useEffect(() => {
+    if (slides.length > 0 && !scriptInput.trim()) {
+      handleScriptChange(SCRIPT_PLACEHOLDER);
+    }
+  }, [slides.length, scriptInput, handleScriptChange]);
+
+  // Reset slide state when new PDF is loaded
+  useEffect(() => {
+    if (slides.length > 0) {
+      resetSlideState();
+    }
+  }, [slides.length, resetSlideState]);
+
   return {
     // State
     currentIndex,
@@ -189,6 +211,11 @@ export const useSlidePresentation = (slides: SlideImage[]) => {
 
     // Message group data for SlideViewer
     messageGroupId,
+
+    // Derived state (派生状態)
+    currentGroupIndex,
+    currentSpeaker,
+    totalGroups,
 
     // Handlers
     handleMessagePrev,
