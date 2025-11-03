@@ -83,12 +83,7 @@ export const useMessageGroupControl = ({
       playExplosionSound();
       lastExplosionKeyRef.current = explosionKey;
     }
-  }, [
-    activeAnimation,
-    currentIndex,
-    currentGroupIndex,
-    currentMessageGroups,
-  ]);
+  }, [activeAnimation, currentIndex, currentGroupIndex, currentMessageGroups]);
 
   useEffect(() => {
     if (activeAnimation !== "explosion") {

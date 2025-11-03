@@ -1,4 +1,9 @@
-import type { MessageGroup, MessageLine, SlideImage, Speaker } from "../../types/slides";
+import type {
+  MessageGroup,
+  MessageLine,
+  SlideImage,
+  Speaker,
+} from "../../types/slides";
 import type { AudioMode } from "@/components/ControlPanel/AudioSettingsSection";
 import styles from "./SlideViewer.module.scss";
 import SlideViewerHeader from "./SlideViewerHeader";
@@ -102,8 +107,3 @@ export default function SlideViewer({
     </section>
   );
 }
-
-
-
-
-

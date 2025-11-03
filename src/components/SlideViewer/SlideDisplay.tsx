@@ -18,9 +18,7 @@ export default function SlideDisplay({
 }: SlideDisplayProps) {
   return (
     <div className={styles.stage}>
-      {isLoading && (
-        <p className={styles.loading}>Loading PDF...</p>
-      )}
+      {isLoading && <p className={styles.loading}>Loading PDF...</p>}
 
       {!isLoading && currentSlide && (
         <>
