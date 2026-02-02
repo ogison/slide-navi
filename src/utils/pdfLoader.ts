@@ -55,7 +55,6 @@ export const renderPdfToSlides = async (
     await page.render({
       canvasContext: context,
       viewport,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       canvas: canvas as any,
     }).promise;
 
